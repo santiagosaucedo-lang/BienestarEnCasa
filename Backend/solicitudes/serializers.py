@@ -56,6 +56,12 @@ class SolicitudReservaSerializer(serializers.ModelSerializer):
         u = obj.proveedor.perfil_usuario.usuario
         return f"{u.first_name} {u.last_name}".strip() or u.email
 
+    def validate_servicio(self, servicio):
+        # HU-12: solo se puede solicitar un servicio activo del catálogo
+        if servicio is not None and servicio.estado != Servicio.Estado.ACTIVO:
+            raise serializers.ValidationError('El servicio seleccionado no está disponible.')
+        return servicio
+
     def validate(self, attrs):
         fecha = attrs.get('fecha_solicitada')
         hora = attrs.get('hora_solicitada')
@@ -85,6 +91,9 @@ class SolicitudReservaSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
 
     def validate(self, attrs):
+        if self.instance is None and not attrs.get('servicio'):
+            raise serializers.ValidationError({'servicio': 'Debes seleccionar un servicio.'})
+
         campos_horario = {'fecha_solicitada', 'hora_solicitada', 'servicio'}
         if self.instance is None or campos_horario.intersection(attrs):
             fecha = attrs.get('fecha_solicitada', getattr(self.instance, 'fecha_solicitada', None))

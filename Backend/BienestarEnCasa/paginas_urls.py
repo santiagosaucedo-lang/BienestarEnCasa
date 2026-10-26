@@ -27,6 +27,8 @@ urlpatterns = [
     # Proveedor
     path('panel-proveedor/', pagina('users/plantilla-proveedor.html'), name='pagina-panel-proveedor'),
     path('disponibilidad/', GestionarDisponibilidadPageView.as_view(), name='pagina-disponibilidad'),
+    path('agenda/', pagina('users/agenda-proveedor.html'), name='pagina-agenda'),  # HU-19
+    path('solicitudes-recibidas/', pagina('solicitudes/solicitudes-recibidas.html'), name='pagina-solicitudes-recibidas'),  # HU-14
     path('perfil-profesional/', pagina('users/perfil-proveedor.html'), name='pagina-perfil-proveedor'),
     path('zonas-atencion/', pagina('users/zonas-atencion.html'), name='pagina-zonas'),
     path('mis-servicios/', pagina('catalogo/mis-servicios.html'), name='pagina-mis-servicios'),
