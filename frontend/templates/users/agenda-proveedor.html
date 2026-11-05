@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi agenda - Bienestar en Casa{% endblock %}
+
+{% block header_nav %}
+    {% include 'nav_proveedor.html' %}
+{% endblock %}
+
+{% block body %}
+<div style="background-color: #f8fafc; min-height: calc(100vh - 72px); padding: 2.5rem 1rem; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; box-sizing: border-box;">
+  <div style="max-width: 68rem; margin: 0 auto;">
+
+    <div style="margin-bottom: 1.5rem;">
+      <h1 style="font-size: 2.25rem; font-weight: 800; color: #0f172a; margin: 0 0 0.5rem 0;">Mi agenda</h1>
+      <p style="color: #64748b; margin: 0;">Reservas confirmadas, días bloqueados y tu horario de atención.</p>
+    </div>
+
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 1.25rem; padding: 1.25rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.5rem;">
+      <label style="display: flex; align-items: center; gap: 0.4rem; color: #64748b; font-size: 0.9rem;">Desde
+        <input id="a-desde" type="date" style="padding: 0.6rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background: #f8fafc;" />
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.4rem; color: #64748b; font-size: 0.9rem;">Hasta
+        <input id="a-hasta" type="date" style="padding: 0.6rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background: #f8fafc;" />
+      </label>
+      <button id="a-consultar" type="button" style="background: #0d9488; color: #fff; border: none; padding: 0.65rem 1.25rem; border-radius: 0.75rem; font-weight: 700; cursor: pointer;">Consultar</button>
+      <button id="a-semana" type="button" style="background: #fff; color: #334155; border: 1px solid #cbd5e1; padding: 0.65rem 1.25rem; border-radius: 0.75rem; font-weight: 600; cursor: pointer;">Próximos 7 días</button>
+      <button id="a-mes" type="button" style="background: #fff; color: #334155; border: 1px solid #cbd5e1; padding: 0.65rem 1.25rem; border-radius: 0.75rem; font-weight: 600; cursor: pointer;">Próximos 30 días</button>
+    </div>
+
+    <div id="a-mensaje" role="status" aria-live="polite" style="margin-bottom: 1rem; font-weight: 600; color: #dc2626;"></div>
+    <div id="a-horario" style="margin-bottom: 1.25rem;"></div>
+    <div id="a-dias" style="display: flex; flex-direction: column; gap: 1rem;"></div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var desde = document.getElementById('a-desde'), hasta = document.getElementById('a-hasta');
+  var cont = document.getElementById('a-dias'), horario = document.getElementById('a-horario'), msg = document.getElementById('a-mensaje');
+
+  function esc(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function iso(d) {
+    var m = String(d.getMonth() + 1).padStart(2, '0'), dia = String(d.getDate()).padStart(2, '0');
+    return d.getFullYear() + '-' + m + '-' + dia;
+  }
+  function parse(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function etiquetaDia(s) {
+    return parse(s).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  function hora(h) {
+    var p = String(h || '').split(':'); if (p.length < 2) return h || '';
+    var hh = +p[0]; return ((hh % 12) || 12) + ':' + p[1] + ' ' + (hh >= 12 ? 'PM' : 'AM');
+  }
+  function horaFin(h, min) {
+    var p = String(h).split(':'), total = (+p[0]) * 60 + (+p[1]) + (+min || 0);
+    return String(Math.floor(total / 60) % 24).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0');
+  }
+  function rango(dias) {
+    var hoy = new Date(); desde.value = iso(hoy);
+    var fin = new Date(hoy); fin.setDate(fin.getDate() + dias); hasta.value = iso(fin);
+    cargar();
+  }
+
+  function pintar(data) {
+    // Horario semanal configurado (HU-11)
+    if (data.horario_semanal && data.horario_semanal.length) {
+      horario.innerHTML = '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:1rem;padding:1rem 1.25rem;color:#1e3a8a;font-size:0.9rem;">' +
+        '<strong>Horario de atención:</strong> ' + data.horario_semanal.map(function (d) {
+          return esc(d.dia) + ' ' + esc(d.hora_inicio) + '–' + esc(d.hora_fin);
+        }).join(' · ') + '</div>';
+    } else {
+      horario.innerHTML = '<div style="background:#fef9c3;border:1px solid #fde68a;border-radius:1rem;padding:1rem 1.25rem;color:#854d0e;font-size:0.9rem;">' +
+        'Aún no has configurado tu horario de atención. Hazlo en <a href="{% url "pagina-disponibilidad" %}" style="color:#854d0e;font-weight:700;">Disponibilidad</a>.</div>';
+    }
+
+    // Agrupar por día: reservas y bloqueos
+    var porDia = {};
+    function dia(s) { return (porDia[s] = porDia[s] || { reservas: [], bloqueos: [] }); }
+    (data.reservas || []).forEach(function (r) { dia(r.fecha_solicitada).reservas.push(r); });
+    (data.periodos_no_disponibles || []).forEach(function (p) {
+      var ini = parse(p.fecha_inicio < data.desde ? data.desde : p.fecha_inicio);
+      var fin = parse(p.fecha_fin > data.hasta ? data.hasta : p.fecha_fin);
+      for (var d = ini; d <= fin; d.setDate(d.getDate() + 1)) dia(iso(d)).bloqueos.push(p);
+    });
+
+    var claves = Object.keys(porDia).sort();
+    if (!claves.length) {
+      cont.innerHTML = '<div style="text-align:center;padding:3rem;background:#fff;border-radius:1.25rem;border:1px solid #e2e8f0;color:#64748b;">No tienes reservas confirmadas ni días bloqueados en este rango.</div>';
+      return;
+    }
+    cont.innerHTML = claves.map(function (k) {
+      var g = porDia[k];
+      var bloqueos = g.bloqueos.map(function (b) {
+        return '<div style="background:#fee2e2;color:#991b1b;border-radius:0.75rem;padding:0.6rem 0.9rem;font-size:0.9rem;font-weight:600;">No disponible' + (b.motivo ? ': ' + esc(b.motivo) : '') + '</div>';
+      }).join('');
+      var reservas = g.reservas.map(function (r) {
+        return '<div style="border:1px solid #e2e8f0;border-left:4px solid #0d9488;border-radius:0.75rem;padding:0.85rem 1rem;">' +
+          '<div style="font-weight:700;color:#0f172a;">' + esc(hora(r.hora_solicitada)) + ' – ' + esc(hora(horaFin(r.hora_solicitada, r.duracion_minutos_copia))) + ' · ' + esc(r.nombre_servicio_copia) + '</div>' +
+          '<div style="color:#475569;font-size:0.9rem;margin-top:0.25rem;">Cliente: ' + esc(r.cliente_nombre) + ' · ' + esc(r.direccion_atencion) + ' (' + esc(r.barrio_sector) + ')</div>' +
+          (r.informacion_complementaria ? '<div style="color:#64748b;font-size:0.85rem;margin-top:0.2rem;">' + esc(r.informacion_complementaria) + '</div>' : '') +
+          '</div>';
+      }).join('');
+      return '<section style="background:#fff;border:1px solid #e2e8f0;border-radius:1.25rem;padding:1.25rem 1.5rem;">' +
+        '<h2 style="margin:0 0 0.85rem 0;font-size:1.05rem;font-weight:800;color:#0f172a;text-transform:capitalize;">' + esc(etiquetaDia(k)) + '</h2>' +
+        '<div style="display:flex;flex-direction:column;gap:0.6rem;">' + bloqueos + reservas + '</div></section>';
+    }).join('');
+  }
+
+  function cargar() {
+    msg.textContent = '';
+    var p = new URLSearchParams();
+    if (desde.value) p.set('desde', desde.value);
+    if (hasta.value) p.set('hasta', hasta.value);
+    BEC.api('/api/solicitudes/agenda/?' + p.toString()).then(function (res) {
+      if (res.status === 401 || res.status === 403) {
+        msg.textContent = 'Inicia sesión como proveedor para ver tu agenda.';
+        cont.innerHTML = ''; horario.innerHTML = ''; return;
+      }
+      if (!res.ok) {
+        var d = res.data || {}, k = Object.keys(d)[0], v = k ? d[k] : null;
+        msg.textContent = (Array.isArray(v) ? v[0] : v) || 'No se pudo cargar la agenda.';
+        return;
+      }
+      pintar(res.data);
+    }).catch(function () { msg.textContent = 'No se pudo conectar con el servidor.'; });
+  }
+
+  document.getElementById('a-consultar').addEventListener('click', cargar);
+  document.getElementById('a-semana').addEventListener('click', function () { rango(7); });
+  document.getElementById('a-mes').addEventListener('click', function () { rango(30); });
+  rango(30);
+});
+</script>
+{% endblock %}

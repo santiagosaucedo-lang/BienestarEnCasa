@@ -16,6 +16,22 @@
     </li>
 
     <li>
+        {% if request.resolver_match.url_name == 'pagina-solicitudes-recibidas' %}
+            <span class="nav-link active-link">Solicitudes</span>
+        {% else %}
+            <a href="{% url 'pagina-solicitudes-recibidas' %}" class="nav-link">Solicitudes</a>
+        {% endif %}
+    </li>
+
+    <li>
+        {% if request.resolver_match.url_name == 'pagina-agenda' %}
+            <span class="nav-link active-link">Agenda</span>
+        {% else %}
+            <a href="{% url 'pagina-agenda' %}" class="nav-link">Agenda</a>
+        {% endif %}
+    </li>
+
+    <li>
         {% if request.resolver_match.url_name == 'pagina-zonas' %}
             <span class="nav-link active-link">Zonas de Atención</span>
         {% else %}

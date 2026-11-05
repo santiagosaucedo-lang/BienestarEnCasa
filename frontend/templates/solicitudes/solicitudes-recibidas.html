@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Solicitudes recibidas - Bienestar en Casa{% endblock %}
+
+{% block header_nav %}
+    {% include 'nav_proveedor.html' %}
+{% endblock %}
+
+{% block body %}
+<div style="background-color: #f8fafc; min-height: calc(100vh - 72px); padding: 2.5rem 1rem; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; box-sizing: border-box;">
+  <div style="max-width: 68rem; margin: 0 auto;">
+
+    <div style="margin-bottom: 1.5rem;">
+      <h1 style="font-size: 2.25rem; font-weight: 800; color: #0f172a; margin: 0 0 0.5rem 0;">Solicitudes recibidas</h1>
+      <p style="color: #64748b; margin: 0;">Consulta las solicitudes que te han hecho tus clientes.</p>
+    </div>
+
+    <!-- Resumen por estado -->
+    <div id="resumen" style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem;"></div>
+
+    <!-- Filtros -->
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 1.25rem; padding: 1.25rem; display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+      <input id="f-q" type="text" placeholder="Buscar por servicio o cliente..." style="flex: 1; min-width: 220px; padding: 0.7rem 1rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background: #f8fafc;" />
+      <select id="f-estado" style="padding: 0.7rem 1rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background: #f8fafc;">
+        <option value="">Todos los estados</option>
+        <option value="PENDIENTE">Pendientes</option>
+        <option value="SUGERIDA">Con horario sugerido</option>
+        <option value="ACEPTADA">Aceptadas</option>
+        <option value="COMPLETADA">Completadas</option>
+        <option value="CANCELADA">Canceladas o rechazadas</option>
+      </select>
+      <label style="display: flex; align-items: center; gap: 0.4rem; color: #64748b; font-size: 0.9rem;">Desde
+        <input id="f-desde" type="date" style="padding: 0.6rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background: #f8fafc;" />
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.4rem; color: #64748b; font-size: 0.9rem;">Hasta
+        <input id="f-hasta" type="date" style="padding: 0.6rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background: #f8fafc;" />
+      </label>
+    </div>
+
+    <div id="mensaje" role="status" aria-live="polite" style="margin-bottom: 1rem; font-weight: 600;"></div>
+    <div id="lista" style="display: flex; flex-direction: column; gap: 1rem;">
+      <div style="text-align: center; padding: 3rem; background: #fff; border-radius: 1.25rem; border: 1px solid #e2e8f0; color: #64748b;">Cargando solicitudes...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var ETIQUETAS = { PENDIENTE: 'Pendiente', SUGERIDA: 'Horario sugerido', ACEPTADA: 'Aceptada', COMPLETADA: 'Completada', CANCELADA: 'Cancelada / rechazada' };
+  var COLORES = {
+    PENDIENTE: ['#fef9c3', '#854d0e'], SUGERIDA: ['#e0e7ff', '#3730a3'], ACEPTADA: ['#dcfce7', '#166534'],
+    COMPLETADA: ['#ccfbf1', '#115e59'], CANCELADA: ['#fee2e2', '#991b1b']
+  };
+  var lista = document.getElementById('lista');
+  var resumen = document.getElementById('resumen');
+  var mensaje = document.getElementById('mensaje');
+  var fQ = document.getElementById('f-q'), fEstado = document.getElementById('f-estado');
+  var fDesde = document.getElementById('f-desde'), fHasta = document.getElementById('f-hasta');
+
+  function esc(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function fecha(iso) {
+    var p = String(iso || '').split('-');
+    if (p.length !== 3) return iso || '';
+    return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  function hora(h) {
+    var p = String(h || '').split(':');
+    if (p.length < 2) return h || '';
+    var hh = +p[0], suf = hh >= 12 ? 'PM' : 'AM';
+    return ((hh % 12) || 12) + ':' + p[1] + ' ' + suf;
+  }
+  function dinero(v) {
+    return '$' + Number(v || 0).toLocaleString('es-CO', { maximumFractionDigits: 0 });
+  }
+  function avisar(texto, error) {
+    mensaje.textContent = texto || '';
+    mensaje.style.color = error ? '#dc2626' : '#15803d';
+  }
+  function errorDe(res) {
+    var d = res && res.data;
+    if (!d) return 'No se pudo completar la operación.';
+    if (typeof d === 'string') return d;
+    if (d.detail) return d.detail;
+    var k = Object.keys(d)[0];
+    var v = k ? d[k] : null;
+    return Array.isArray(v) ? v[0] : (v || 'No se pudo completar la operación.');
+  }
+
+  function pintarResumen(r) {
+    resumen.innerHTML = Object.keys(ETIQUETAS).map(function (e) {
+      var c = COLORES[e];
+      return '<div style="background:' + c[0] + ';color:' + c[1] + ';border-radius:1rem;padding:0.6rem 1.1rem;text-align:center;min-width:90px;">' +
+        '<div style="font-size:1.4rem;font-weight:800;line-height:1;">' + esc((r || {})[e] || 0) + '</div>' +
+        '<span style="font-size:0.75rem;font-weight:700;">' + esc(ETIQUETAS[e]) + '</span></div>';
+    }).join('');
+  }
+
+  function tarjeta(s) {
+    var c = COLORES[s.estado] || COLORES.PENDIENTE;
+    return '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:1.25rem;padding:1.5rem;">' +
+      '<div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:flex-start;">' +
+        '<div><h3 style="margin:0 0 0.25rem 0;font-size:1.2rem;font-weight:700;color:#0f172a;">' + esc(s.nombre_servicio_copia) + '</h3>' +
+        '<p style="margin:0;color:#64748b;font-size:0.9rem;">Cliente: <strong>' + esc(s.cliente_nombre) + '</strong> · ' + dinero(s.precio_copia) + ' · ' + esc(s.duracion_minutos_copia) + ' min</p></div>' +
+        '<span style="background:' + c[0] + ';color:' + c[1] + ';font-size:0.8rem;font-weight:700;padding:0.35rem 0.85rem;border-radius:9999px;">' + esc(ETIQUETAS[s.estado] || s.estado) + '</span>' +
+      '</div>' +
+      '<div style="margin-top:0.9rem;color:#334155;font-size:0.92rem;line-height:1.6;">' +
+        '<div><strong>Fecha:</strong> ' + esc(fecha(s.fecha_solicitada)) + ' a las ' + esc(hora(s.hora_solicitada)) + '</div>' +
+        '<div><strong>Dirección:</strong> ' + esc(s.direccion_atencion) + ' (' + esc(s.barrio_sector) + ')</div>' +
+        (s.informacion_complementaria ? '<div><strong>Información complementaria:</strong> ' + esc(s.informacion_complementaria) + '</div>' : '') +
+        (s.observaciones ? '<div><strong>Observaciones:</strong> ' + esc(s.observaciones) + '</div>' : '') +
+        (s.motivo_rechazo_cancelacion ? '<div><strong>Motivo:</strong> ' + esc(s.motivo_rechazo_cancelacion) + '</div>' : '') +
+      '</div></div>';
+  }
+
+  function cargar() {
+    var p = new URLSearchParams();
+    if (fQ.value.trim()) p.set('q', fQ.value.trim());
+    if (fEstado.value) p.set('estado', fEstado.value);
+    if (fDesde.value) p.set('desde', fDesde.value);
+    if (fHasta.value) p.set('hasta', fHasta.value);
+
+    BEC.api('/api/solicitudes/recibidas/' + (p.toString() ? '?' + p.toString() : '')).then(function (res) {
+      if (res.status === 401 || res.status === 403) {
+        lista.innerHTML = '<div style="padding:2rem;background:#fff;border-radius:1.25rem;border:1px solid #e2e8f0;color:#64748b;text-align:center;">Inicia sesión como proveedor para ver tus solicitudes.</div>';
+        return;
+      }
+      if (!res.ok) { avisar(errorDe(res), true); return; }
+      pintarResumen(res.data.resumen);
+      var items = res.data.resultados || [];
+      lista.innerHTML = items.length
+        ? items.map(tarjeta).join('')
+        : '<div style="text-align:center;padding:3rem;background:#fff;border-radius:1.25rem;border:1px solid #e2e8f0;color:#64748b;">No hay solicitudes que coincidan con los filtros.</div>';
+    }).catch(function () { avisar('No se pudo conectar con el servidor.', true); });
+  }
+
+  var t;
+  fQ.addEventListener('input', function () { clearTimeout(t); t = setTimeout(cargar, 300); });
+  [fEstado, fDesde, fHasta].forEach(function (el) { el.addEventListener('change', cargar); });
+  cargar();
+});
+</script>
+{% endblock %}
