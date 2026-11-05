@@ -20,7 +20,7 @@ def filtrar_visibles(queryset, user, prefijo=''):
     #cuando consulta un cliente o el proveedr que no es dueño, le muestra solo activo si no los otros
     """Servicios activos para todos; los inactivos solo para su proveedor dueño."""
     return queryset.filter(
-        Q(**{f'{prefijo}estado': Servicio.Estado.ACTIVO})
+        Q(**{f'{prefijo}estado__iexact': Servicio.Estado.ACTIVO})
         | Q(**{f'{prefijo}proveedor__perfil_usuario__usuario': user})
     )
 

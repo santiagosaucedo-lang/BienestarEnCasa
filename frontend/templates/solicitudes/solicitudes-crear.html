@@ -77,6 +77,11 @@
           justify-content: space-between;
           align-items: center;
         }
+        .fieldset-oculto {
+              border: none;
+              margin: 0;
+              padding: 0;
+            }
       </style>
 
       <!-- Columna Izquierda: Formulario -->
@@ -104,7 +109,8 @@
                 <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #334155; margin-bottom: 0.5rem;">
                   Correo electrónico <span style="color: #ef4444;">*</span>
                 </label>
-                <input type="email" id="email_cliente" class="form-input-field" placeholder="correo@ejemplo.com" required>
+                <fieldset class="fieldset-oculto" disabled>
+                <input type="email" id="email_cliente" class="form-input-field" placeholder="correo@ejemplo.com" required></fieldset>
               </div>
             </div>
 
@@ -354,6 +360,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
   var disponibilidadProveedor = null;
   var NOMBRES = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+  var opcionesHorarioBase = Array.prototype.map.call(
+    document.getElementById('horario_disponible').options,
+    function(opcion) { return opcion.cloneNode(true); }
+  );
+
+  function restaurarHorariosBase() {
+    var select = document.getElementById('horario_disponible');
+    select.replaceChildren.apply(select, opcionesHorarioBase.map(function(opcion) { return opcion.cloneNode(true); }));
+  }
+
+  function quitarHorariosPasados(fechaSeleccionada) {
+    var select = document.getElementById('horario_disponible');
+    var ahora = new Date();
+    var fechaHoy = ahora.getFullYear() + '-' + String(ahora.getMonth() + 1).padStart(2, '0') + '-' + String(ahora.getDate()).padStart(2, '0');
+    if (fechaSeleccionada !== fechaHoy) return;
+
+    var minutosActuales = ahora.getHours() * 60 + ahora.getMinutes();
+    Array.prototype.slice.call(select.options).forEach(function(opcion) {
+      if (!opcion.value) return;
+      var partes = opcion.value.split(':').map(Number);
+      if (partes[0] * 60 + partes[1] <= minutosActuales) opcion.remove();
+    });
+
+    var quedanHorarios = Array.prototype.some.call(select.options, function(opcion) { return Boolean(opcion.value); });
+    if (!quedanHorarios) {
+      select.innerHTML = '<option value="" disabled selected>No quedan horarios disponibles para hoy</option>';
+      if (errorFecha) {
+        errorFecha.textContent = 'Ya no hay horarios disponibles para hoy. Selecciona otra fecha.';
+        errorFecha.style.display = 'block';
+      }
+    }
+  }
 
   function fmt12(hhmm) {
     var p = hhmm.split(':');
@@ -391,12 +429,16 @@ document.addEventListener('DOMContentLoaded', function() {
     var select = document.getElementById('horario_disponible');
     if (!valorFecha || !select) return;
     if (!disponibilidadProveedor || !disponibilidadProveedor.configurado) {
+      restaurarHorariosBase();
       var fechaSel = new Date(valorFecha + 'T00:00:00');
       var jsDay = fechaSel.getDay();
       if (jsDay === 0 || jsDay === 6) {
         if (errorFecha) { errorFecha.textContent = 'Atención únicamente de Lunes a Viernes.'; errorFecha.style.display = 'block'; }
         inputFecha.value = '';
-      } else if (errorFecha) { errorFecha.textContent = ''; errorFecha.style.display = 'none'; }
+      } else {
+        if (errorFecha) { errorFecha.textContent = ''; errorFecha.style.display = 'none'; }
+        quitarHorariosPasados(valorFecha);
+      }
       return;
     }
     var fecha = new Date(valorFecha + 'T00:00:00');
@@ -430,6 +472,7 @@ document.addEventListener('DOMContentLoaded', function() {
       cursor += 60;
     }
     select.innerHTML = html;
+    quitarHorariosPasados(valorFecha);
   }
 
   function cargarDisponibilidadProveedor(proveedorId) {
@@ -481,6 +524,13 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!inputFecha.value) {
         if (errorFecha) {
           errorFecha.textContent = 'Selecciona una fecha válida.';
+          errorFecha.style.display = 'block';
+        }
+        return;
+      }
+      if (!document.getElementById('horario_disponible').value) {
+        if (errorFecha) {
+          errorFecha.textContent = 'Selecciona un horario futuro disponible.';
           errorFecha.style.display = 'block';
         }
         return;

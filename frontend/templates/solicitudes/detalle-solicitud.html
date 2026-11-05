@@ -41,7 +41,7 @@
 {% block extra_body %}
 <script>
 (function () {
-    var ID = {{ pk }};
+    var ID = "{{ pk }}";
 
     function texto(id, valor) { document.getElementById(id).textContent = valor; }
     function opcional(idP, idSpan, valor) {

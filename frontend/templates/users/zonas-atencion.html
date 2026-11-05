@@ -21,7 +21,11 @@
     </div>
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; align-items: start;">
-      
+      <style>.fieldset-oculto {
+              border: none;
+              margin: 0;
+              padding: 0;
+            }</style>
       <!-- Formulario de creación de zona -->
       <div style="background-color: #ffffff; border-radius: 1.25rem; border: 1px solid #e2e8f0; padding: 1.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
         <h2 style="font-size: 1.15rem; font-weight: 700; color: #0f172a; margin: 0 0 1.25rem 0;">
@@ -34,7 +38,8 @@
           {% csrf_token %}
           <div style="margin-bottom: 1rem;">
               <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.4rem;">Ciudad / Municipio *</label>
-              <input type="text" id="inputCiudadZona" value="Cali" placeholder="Ej: Cali" required style="width: 100%; box-sizing: border-box; padding: 0.75rem 0.9rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #f8fafc; font-size: 0.9rem; outline: none;">
+              <fieldset class="fieldset-oculto" disabled>
+              <input type="text" id="inputCiudadZona" value="Cali" placeholder="Ej: Cali" required style="width: 100%; box-sizing: border-box; padding: 0.75rem 0.9rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #f8fafc; font-size: 0.9rem; outline: none;"></fieldset>
           </div>
 
           <div style="margin-bottom: 1.25rem;">

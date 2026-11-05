@@ -192,3 +192,71 @@ main.main-content {
   gap: 20px;
   list-style: none;
 }
+/* ==========================================================================
+   DISEÑO RESPONSIVO (MENÚ HAMBURGUESA)
+   ========================================================================== */
+
+/* 1. Ocultar por defecto en computadoras (Alta especificidad) */
+.header-container .btn-menu-mobile {
+    display: none !important;
+    background-color: #F8FAFC;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    margin-left: auto; /* Empuja el botón a la derecha */
+    transition: background-color 0.2s ease;
+}
+
+.header-container .btn-menu-mobile:hover {
+    background-color: #EFF6FF;
+}
+
+/* 2. Reglas exclusivas para Móviles (Pantallas reducidas) */
+@media (max-width: 768px) {
+    
+    /* Mostrar el botón obligatoriamente en móviles */
+    .header-container .btn-menu-mobile {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Ocultar el menú original y volverlo desplegable */
+    .main-header .main-nav .nav-list {
+        display: none !important; 
+        flex-direction: column !important;
+        position: absolute !important;
+        top: 72px !important; 
+        left: 0 !important;
+        width: 100% !important;
+        background-color: #ffffff !important;
+        padding: 1.5rem !important;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+        border-top: 1px solid #e2e8f0 !important;
+        align-items: flex-start !important;
+        z-index: 9999 !important; 
+    }
+
+    /* Mostrar menú al hacer clic */
+    .main-header .main-nav .nav-list.mostrar-menu {
+        display: flex !important;
+    }
+
+    /* Adaptar botones y enlaces del menú */
+    .main-header .main-nav .nav-list li {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .main-header .main-nav .nav-list .nav-link {
+        display: block;
+        padding: 0.5rem 0 !important;
+    }
+
+    .btn-nav-login, .btn-nav-logout {
+        width: 100% !important;
+        text-align: center;
+        margin-top: 1rem;
+    }
+}

@@ -3,8 +3,8 @@ import tempfile
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import override_settings
-from rest_framework.test import APITestCase
+from django.test import TestCase, override_settings
+from rest_framework.test import APIClient, APITestCase
 
 from usuarios.models import PerfilProveedor, PerfilUsuario
 from .models import Categoria, Servicio
@@ -57,15 +57,68 @@ class HU08HU09Tests(APITestCase):
 
     def test_busqueda(self):
         self.client.force_authenticate(self.ajeno)
+        proveedores = self.client.get('/api/proveedores/?search=Ana')
+        self.assertEqual(proveedores.status_code, 200)
+        self.assertEqual(proveedores.data[0]['nombres'], 'Ana')
+        self.assertIn('servicios', proveedores.data[0])
         self.assertEqual(len(self.client.get('/api/catalogo/servicios/?search=Ana').data), 1)
         respuesta = self.client.get('/api/catalogo/servicios/?search=inexistente')
         self.assertEqual((respuesta.status_code, respuesta.data), (200, []))
+
+    def test_proveedor_puede_actualizar_y_cambiar_estado_de_su_servicio(self):
+        self.client.force_authenticate(self.dueno)
+        respuesta = self.client.patch(
+            f'/api/catalogo/servicios/{self.servicio.pk}/',
+            {'nombre': 'Masaje actualizado', 'precio': '60000.00', 'estado': 'inactivo'},
+            format='json',
+        )
+        self.assertEqual(respuesta.status_code, 200, respuesta.data)
+        self.assertEqual(respuesta.data['estado'], 'INACTIVO')
+        self.servicio.refresh_from_db()
+        self.assertEqual(self.servicio.nombre, 'Masaje actualizado')
+        self.assertEqual(self.servicio.precio, 60000)
+
+        reactivar = self.client.patch(
+            f'/api/catalogo/servicios/{self.servicio.pk}/',
+            {'estado': 'ACTIVO'},
+            format='json',
+        )
+        self.assertEqual(reactivar.status_code, 200, reactivar.data)
+        self.assertEqual(reactivar.data['estado'], 'ACTIVO')
 
     def test_perfil_proveedor_con_catalogo(self):
         self.client.force_authenticate(self.ajeno)
         respuesta = self.client.get(f'/api/proveedores/{self.servicio.proveedor_id}/')
         self.assertEqual(respuesta.data['servicios'][0]['nombre'], 'Masaje relajante')
         self.assertIn('elementos', respuesta.data['servicios'][0])
+        self.assertEqual(respuesta.data['nombres'], 'Ana')
+
+        publico = APIClient().get(f'/api/proveedores/{self.servicio.proveedor_id}/')
+        self.assertEqual(publico.status_code, 200)
+        self.assertIn('zonas_atencion', publico.data)
+        self.assertIn('servicios', publico.data)
+
+
+class CatalogoPaginasFrontendTests(TestCase):
+    def test_paginas_de_gestion_catalogo_y_perfil_renderizan(self):
+        rutas = (
+            '/mis-servicios/',
+            '/mis-servicios/nuevo/',
+            '/mis-servicios/1/editar/',
+            '/catalogo/',
+            '/catalogo/1/',
+            '/proveedor/1/',
+        )
+        for ruta in rutas:
+            with self.subTest(ruta=ruta):
+                self.assertEqual(self.client.get(ruta).status_code, 200)
+
+    def test_base_template_no_incrusta_codigo_javascript(self):
+        from pathlib import Path
+
+        plantilla_base = Path(__file__).resolve().parents[2] / 'frontend' / 'templates' / 'base.html'
+        contenido = plantilla_base.read_text(encoding='utf-8')
+        self.assertNotIn('<script', contenido.lower())
 
 
 @override_settings(MEDIA_ROOT=MEDIA_TEMP)
@@ -198,8 +251,9 @@ class FlujoCompletoURLsTests(APITestCase):
 
         # Sin sesión
         for url in ('/api/catalogo/servicios/', f'/api/catalogo/servicios/{srv}/', '/api/catalogo/multimedia/',
-                    '/api/catalogo/elementos/', f"/api/proveedores/{perfil['id']}/"):
+                    '/api/catalogo/elementos/'):
             self.llamar('Anónimo', 'get', url, 401)
+        self.llamar('Anónimo', 'get', f"/api/proveedores/{perfil['id']}/", 200)
         self.llamar('Anónimo', 'post', '/api/catalogo/elementos/', 401,
                     data={'servicio': srv, 'tipo': 'EQUIPO', 'nombre': 'X'}, format='json')
         self.llamar('Anónimo', 'get', '/api/catalogo/servicios/', 401, token='token-invalido')

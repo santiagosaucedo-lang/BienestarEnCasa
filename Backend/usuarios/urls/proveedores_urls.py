@@ -3,10 +3,9 @@ from django.urls import path
 from ..views import (
     MiPerfilProveedorView, 
     MisZonasAtencionView, 
-    ZonaAtencionDetalleView,  # <--- Importamos la nueva vista de detalle
-    ProveedorDetalleView
-)
-from ..disponibilidad_views import (
+    ZonaAtencionDetalleView,  
+    ProveedorDetalleView,
+    ProveedorListaView,  # Importamos la vista de lista/búsqueda
     DisponibilidadProveedorDetailView,
     DisponibilidadProveedorListCreateView,
     DisponibilidadPublicaView,
@@ -17,7 +16,7 @@ from ..disponibilidad_views import (
 urlpatterns = [
     path('mi-perfil/', MiPerfilProveedorView.as_view(), name='mi-perfil-proveedor'),
     path('mis-zonas/', MisZonasAtencionView.as_view(), name='mis-zonas-atencion'),
-    path('mis-zonas/<int:pk>/', ZonaAtencionDetalleView.as_view(), name='detalle-zona-atencion'), # <--- Habilita la eliminación DELETE /api/proveedores/mis-zonas/<id>/
+    path('mis-zonas/<int:pk>/', ZonaAtencionDetalleView.as_view(), name='detalle-zona-atencion'),
 
     # HU-11: disponibilidad y periodos no disponibles del proveedor autenticado
     path('disponibilidad/', DisponibilidadProveedorListCreateView.as_view(), name='disponibilidad-proveedor'),
@@ -28,4 +27,7 @@ urlpatterns = [
     # HU-09 / HU-10: perfil público del proveedor con su catálogo activo
     path('<int:pk>/disponibilidad-publica/', DisponibilidadPublicaView.as_view(), name='disponibilidad-publica'),
     path('<int:pk>/', ProveedorDetalleView.as_view(), name='detalle-proveedor'),
+    
+    # HU-10: Buscar proveedores por nombre 
+    path('', ProveedorListaView.as_view(), name='api-proveedores-lista'),
 ]

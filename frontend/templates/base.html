@@ -8,6 +8,7 @@
     <title>{% block title %}BienestarEnCasa{% endblock %}</title>
     
     <link rel="stylesheet" href="{% static 'estilos.css' %}?v=1.4">
+    <link rel="icon" href="{% static 'logo.png' %}">
     
     {% block extra_head %}{% endblock %}
 </head>
@@ -21,6 +22,16 @@
                 <span style="font-size: 1.2rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em;">BienestarEnCasa</span>
             </a>
             
+            <!-- Botón Hamburguesa (Oculto por defecto) -->
+            <!-- Botón Hamburguesa -->
+            <button type="button" class="btn-menu-mobile" id="btnMenuMobile" aria-label="Abrir menú">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#1A68FF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+            <!-- Navegación Principal -->
             <nav class="main-nav" aria-label="Navegación principal">
                 {% block header_nav %}
                     <ul class="nav-list" id="global-nav-list">
@@ -167,289 +178,7 @@
         </div>
     </div>
 
-    <!-- Script de Autenticación Múltiple Endpoint Fallback -->
-    <script>
-(function() {
-    window.BEC = window.BEC || {};
-
-    // Configuración global de Endpoints de la API y Vistas HTML
-    window.BEC.cfg = {
-        api: {
-            login: '/api/auth/iniciar-sesion/',
-            servicios: '/api/catalogo/servicios/',
-            registro : '/api/auth/registro/',
-            solicitudes: '/api/solicitudes/',
-            direcciones: '/api/usuarios/direcciones/',
-            direccion: '/api/usuarios/direcciones/{id}/'
-        },
-        pages: {
-            solicitudCrear: '/solicitud/crear/{id}/'
-        }
-    };
-
-    // Helper para reemplazar IDs en plantillas de URLs
-    window.BEC.url = function(pattern, id) {
-        return pattern.replace('{id}', id);
-    };
-
-    // Helper para unificar listas devueltas por DRF o paginación
-    window.BEC.lista = function(data) {
-        if (Array.isArray(data)) return data;
-        if (data && Array.isArray(data.results)) return data.results;
-        if (data && Array.isArray(data.resultados)) return data.resultados;
-        return [];
-    };
-
-    // Helper centralizado de Peticiones API con token Bearer
-    window.BEC.api = function(url, options) {
-        options = options || {};
-        options.headers = options.headers || {};
-
-        function getCookie(name) {
-            var cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-
-        var csrf = getCookie('csrftoken') || document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-        if (csrf && !options.headers['X-CSRFToken']) {
-            options.headers['X-CSRFToken'] = csrf;
-        }
-
-        if (!options.headers['Content-Type'] && !(options.body instanceof FormData)) {
-            options.headers['Content-Type'] = 'application/json';
-        }
-
-        options.headers['Accept'] = 'application/json';
-        
-
-        try {
-            var perfil = JSON.parse(localStorage.getItem('bec_perfil') || '{}');
-            var token = perfil.access || perfil.token || perfil.access_token;
-            if (token) {
-                options.headers['Authorization'] = 'Bearer ' + token;
-            }
-        } catch(e) {}
-
-        options.credentials = 'same-origin';
-
-        if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
-            options.body = JSON.stringify(options.body);
-        }
-
-        return fetch(url, options).then(function(res) {
-            return res.json().then(function(data) {
-                return { ok: res.ok, status: res.status, data: data };
-            }).catch(function() {
-                return { ok: res.ok, status: res.status, data: null };
-            });
-        });
-    };
-
-    window.BEC.cerrarSesion = function() {
-        localStorage.removeItem('bec_perfil');
-        window.location.href = "{% url 'pagina-inicio' %}";
-    };
-
-    document.addEventListener('DOMContentLoaded', function() {
-        var urlPanelProveedor = "{% url 'pagina-panel-proveedor' %}";
-        var urlPanelCliente = "{% url 'pagina-perfil' %}";
-
-        document.body.addEventListener('click', function(e) {
-            var modal = document.getElementById('modalLogin');
-            var vistaLogin = document.getElementById('vistaLoginModal');
-            var vistaRegistro = document.getElementById('vistaRegistroModal');
-
-            if (e.target && (e.target.id === 'btn-abrir-login-modal' || e.target.classList.contains('btn-nav-login'))) {
-                e.preventDefault();
-                if (modal) {
-                    modal.classList.add('activo');
-                    modal.setAttribute('aria-hidden', 'false');
-                }
-            }
-            if (e.target && e.target.id === 'btnCerrarModal') {
-                if (modal) {
-                    modal.classList.remove('activo');
-                    modal.setAttribute('aria-hidden', 'true');
-                }
-            }
-            if (e.target && e.target.id === 'linkIrARegistro') {
-                e.preventDefault();
-                if (vistaLogin && vistaRegistro) {
-                    vistaLogin.style.display = 'none';
-                    vistaRegistro.style.display = 'block';
-                }
-            }
-            if (e.target && e.target.id === 'linkIrALogin') {
-                e.preventDefault();
-                if (vistaLogin && vistaRegistro) {
-                    vistaRegistro.style.display = 'none';
-                    vistaLogin.style.display = 'block';
-                }
-            }
-            if (e.target && e.target.id === 'btn-cerrar-sesion') {
-                window.BEC.cerrarSesion();
-            }
-        });
-
-        var btnSubmit = document.getElementById('btnSubmitLogin');
-
-        var formRegistroModal = document.getElementById('registroFormModal');
-        
-        if (formRegistroModal) {
-            formRegistroModal.addEventListener('submit', function(e) {
-                e.preventDefault(); // Detiene la recarga de la página
-                
-                var msgBoxReg = document.getElementById('mensajesRegistroModal');
-                var btnSubmitReg = formRegistroModal.querySelector('button[type="submit"]');
-                
-                // Capturamos los datos
-                var datos = {
-                    nombres: formRegistroModal.nombres.value.trim(),
-                    apellidos: formRegistroModal.apellidos.value.trim(),
-                    email: formRegistroModal.email.value.trim(),
-                    password: formRegistroModal.password.value,
-                    password_confirmacion: formRegistroModal.password_confirmacion.value,
-                    rol: formRegistroModal.rol.value,
-                    telefono: formRegistroModal.telefono.value.trim()
-                };
-
-                // Validar contraseñas
-                if (datos.password !== datos.password_confirmacion) {
-                    if (msgBoxReg) msgBoxReg.innerHTML = '<div style="color: #ef4444; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem;">Las contraseñas no coinciden.</div>';
-                    return;
-                }
-
-                // Mostrar estado de carga
-                if (btnSubmitReg) {
-                    btnSubmitReg.disabled = true;
-                    btnSubmitReg.textContent = 'Creando cuenta...';
-                }
-
-                // Enviar al backend
-                window.BEC.api(window.BEC.cfg.api.registro, { method: 'POST', body: datos })
-                .then(function(res) {
-                    if (btnSubmitReg) {
-                        btnSubmitReg.disabled = false;
-                        btnSubmitReg.textContent = 'Crear Cuenta';
-                    }
-
-                    if (res && res.ok) {
-                        // Guardar datos en local y redirigir
-                        if (res.data) {
-                            try { localStorage.setItem('bec_perfil', JSON.stringify(res.data)); } catch (e) {}
-                        }
-
-                        if (msgBoxReg) {
-                            msgBoxReg.innerHTML = '<div style="color:#16a34a;font-weight:700;font-size:0.85rem;margin-bottom:0.5rem;">¡Cuenta creada exitosamente!</div>';
-                        }
-
-                        // Definir la redirección según el rol
-                        var rolGuardado = (res.data && res.data.rol) ? res.data.rol.toUpperCase() : '';
-                        var destino = (rolGuardado === 'PROVEEDOR' || rolGuardado === 'PRO')
-                            ? "{% url 'pagina-panel-proveedor' %}"
-                            : "{% url 'mi-perfil' %}";
-
-                        //  Esperar 1.5 segundos antes de redirigir para que el mensaje sea visible
-                        setTimeout(function() {
-                            window.location.href = destino;
-                        }, 1500);
-
-                    } else {
-                        // Manejar errores de validación de Django
-                        var errMsj = 'Error al registrar: Revisa los datos.';
-                        if (res.data) {
-                            errMsj = res.data.email || res.data.detail || res.data.non_field_errors || errMsj;
-                            if (Array.isArray(errMsj)) errMsj = errMsj[0];
-                        }
-                        if (msgBoxReg) msgBoxReg.innerHTML = '<div style="color: #ef4444; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem;">' + errMsj + '</div>';
-                    }
-                }).catch(function() {
-                    if (btnSubmitReg) {
-                        btnSubmitReg.disabled = false;
-                        btnSubmitReg.textContent = 'Crear Cuenta';
-                    }
-                    if (msgBoxReg) msgBoxReg.innerHTML = '<div style="color: #ef4444; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem;">Error de conexión con el servidor.</div>';
-                });
-            });
-        }
-
-        if (btnSubmit) {
-            btnSubmit.addEventListener('click', function() {
-                var emailInput = document.getElementById('emailModal');
-                var passInput = document.getElementById('passwordModal');
-                var msgBox = document.getElementById('mensajesModal');
-
-                var email = emailInput ? emailInput.value.trim() : '';
-                var password = passInput ? passInput.value.trim() : '';
-
-                if (!email || !password) {
-                    if (msgBox) msgBox.innerHTML = '<div style="color: #ef4444; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem;">Ingresa correo y contraseña.</div>';
-                    return;
-                }
-
-                btnSubmit.disabled = true;
-                btnSubmit.textContent = 'Autenticando...';
-
-                window.BEC.api(window.BEC.cfg.api.login, {
-                    method: 'POST',
-                    body: { email: email, password: password }
-                }).then(function(res) {
-                    if (res.ok) {
-                        var usuario = res.data.perfil || res.data.usuario || res.data.user || res.data;
-                        if (res.data.access) usuario.access = res.data.access;
-                        
-                        localStorage.setItem('bec_perfil', JSON.stringify(usuario));
-                        var rol = (usuario && usuario.rol) ? usuario.rol.toUpperCase() : '';
-
-                        if (rol === 'PROVEEDOR' || rol === 'PRO') {
-                            window.location.href = urlPanelProveedor;
-                        } else {
-                            window.location.href = urlPanelCliente;
-                        }
-                    } else {
-                        btnSubmit.disabled = false;
-                        btnSubmit.textContent = 'Iniciar sesión';
-                        var errMsj = (res.data && (res.data.detail || res.data.error || res.data.non_field_errors || res.data.mensaje))
-                            ? (res.data.detail || res.data.error || res.data.non_field_errors || res.data.mensaje)
-                            : 'Correo o contraseña incorrectos.';
-                        if (msgBox) msgBox.innerHTML = '<div style="color: #ef4444; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem;">' + errMsj + '</div>';
-                    }
-                }).catch(function() {
-                    btnSubmit.disabled = false;
-                    btnSubmit.textContent = 'Iniciar sesión';
-                    if (msgBox) msgBox.innerHTML = '<div style="color: #ef4444; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem;">Error al conectar con el servidor.</div>';
-                });
-            });
-        }
-
-        try {
-            var perfilStr = localStorage.getItem('bec_perfil');
-            if (perfilStr) {
-                var perfil = JSON.parse(perfilStr);
-                var rol = (perfil && perfil.rol) ? perfil.rol.toUpperCase() : '';
-                var navContainer = document.querySelector('.main-nav');
-                if (navContainer && rol) {
-                    var templateId = (rol === 'PROVEEDOR' || rol === 'PRO') ? 'tmpl-nav-proveedor' : 'tmpl-nav-cliente';
-                    var template = document.getElementById(templateId);
-                    if (template) {
-                        navContainer.innerHTML = template.innerHTML;
-                    }
-                }
-            }
-        } catch(e) {}
-    });
-})();
-</script>
+    {% include 'includes/runtime-bec.html' %}
 
     <!-- Estilos CSS Modal -->
     <style>
@@ -633,18 +362,33 @@
         text-decoration: underline;
     }
     
-    .main-nav ul, .nav-list {
-    display: flex !important;
-    align-items: center !important;
-    gap: 1.25rem !important;
-    list-style: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
+    @media (min-width: 769px) {
+        .main-nav ul, .nav-list {
+            display: flex !important;
+            align-items: center !important;
+            gap: 1.25rem !important;
+            list-style: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+    }
 
-.nav-link {
-    white-space: nowrap !important;
-}
-    </style>
+    .nav-link {
+        white-space: nowrap !important;
+    }
+</style>
+    {% block extra_body %}{% endblock %}
+    <script>
+        document.addEventListener('click', function(e) {
+            const btnHamburguesa = e.target.closest('#btnMenuMobile');
+            if (btnHamburguesa) {
+                // Buscamos específicamente la lista dentro de main-nav
+                const navList = document.querySelector('.main-nav .nav-list');
+                if (navList) {
+                    navList.classList.toggle('mostrar-menu');
+                }
+            }
+        });
+    </script>
 </body>
 </html>

@@ -3,44 +3,165 @@
 {% block title %}Detalle del Servicio - BienestarEnCasa{% endblock %}
 
 {% block body %}
+<style>
+    .titulo-principal {
+        text-align: center;
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 2rem;
+    }
+    .layout-dos-columnas {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    .tarjeta-detalle {
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    }
+    .tarjeta-detalle h2 {
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin: 1.5rem 0;
+    }
+    #d-insumos {
+        list-style: none;
+        padding-left: 0;
+        margin-top: 1rem;
+    }
+    #d-multimedia {
+        list-style: none;
+        padding-left: 0;
+    }
+    .info-item p {
+        margin: 0;
+    }
+    .seccion-galeria {
+        margin-bottom: 1.5rem;
+    }
+    .seccion-galeria p {
+        margin-bottom: 0.5rem;
+    }
+    @media (max-width: 768px) {
+        .layout-dos-columnas {
+            grid-template-columns: 1fr;
+        }
+    }
+    .options-menu {
+        display: flex;
+        justify-content: center;
+        gap: 1.25rem;
+        margin-top: 2.5rem;
+        margin-bottom: 4rem; /* <-- Separa los botones del footer */
+        flex-wrap: wrap;
+    }
+    .btn-custom {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-width: 170px;
+        height: 44px;
+        padding: 0 1.25rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-principal {
+        background-color: #2563eb;
+        color: #ffffff !important;
+    }
+    .btn-principal:hover {
+        background-color: #1d4ed8;
+    }
+    .btn-secundario {
+        background-color: #f1f5f9;
+        color: #334155 !important;
+        border: 1px solid #cbd5e1;
+    }
+    .btn-secundario:hover {
+        background-color: #e2e8f0;
+    }
+</style>
+
 <div class="container">
-    <h1 id="titulo-servicio">Detalle del Servicio</h1>
+    <h1 class="titulo-principal">Detalle del Servicio</h1>
 
     <!-- Mensajes de sistema -->
     <div id="mensajes" aria-live="polite"></div>
 
-    <div class="service-detail-container" id="detalle" hidden>
-        <!-- Información del servicio -->
-        <div class="informacion-servicio">
-            <p><strong>Proveedor:</strong> <span id="d-proveedor"></span></p>
-            <p><strong>Duración:</strong> <span id="d-duracion"></span></p>
-            <p><strong>Precio:</strong> <span id="d-precio"></span></p>
-            <p class="category"><strong>Categoría:</strong> <span id="d-categoria"></span></p>
-            <p><strong>Estado:</strong> <span id="d-estado"></span></p>
+    <div id="detalle" hidden>
+        <div class="layout-dos-columnas">
+            <!-- Tarjeta Izquierda: Información del Servicio -->
+            <div class="tarjeta-detalle">
+                <h2>Información del Servicio</h2>
+                <p id="titulo-servicio" style="font-size: 1.55rem; margin-bottom: 1rem; font-weight: bold;"></p>
 
-            <div class="descripcion">
-                <h3>Descripción</h3>
-                <div id="d-descripcion"></div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <p style="color: #64748b; font-size: 0.85rem; font-weight: 600;">Proveedor:</p>
+                        <p id="d-proveedor" style="font-weight: 700;"></p>
+                    </div>
+                    <div class="info-item">
+                        <p style="color: #64748b; font-size: 0.85rem; font-weight: 600;">Categoría:</p>
+                        <p id="d-categoria" style="font-weight: 700;"></p>
+                    </div>
+                    <div class="info-item">
+                        <p style="color: #64748b; font-size: 0.85rem; font-weight: 600;">Duración:</p>
+                        <p id="d-duracion" style="font-weight: 700;"></p>
+                    </div>
+                    <div class="info-item">
+                        <p style="color: #64748b; font-size: 0.85rem; font-weight: 600;">Precio:</p>
+                        <p id="d-precio" style="font-weight: 700;"></p>
+                    </div>
+                </div>
+
+                <div class="descripcion">
+                    <p style="color: #64748b; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Descripción:</p>
+                    <div id="d-descripcion"></div>
+                </div>
+                
+                <!-- Insumos y Equipos -->
+                <div class="insumos-section" style="margin-top: 1.5rem;" id="bloque-insumos" hidden>
+                    <h3>Insumos y Equipos</h3>
+                    <ul id="d-insumos"></ul>
+                </div>
             </div>
 
-            <!-- Multimedia -->
-            <div class="multimedia-section" id="bloque-multimedia" hidden>
-                <h3>Galería</h3>
-                <ul id="d-multimedia"></ul>
-            </div>
+            <!-- Tarjeta Derecha: Galería del Servicio -->
+            <div class="tarjeta-detalle" id="bloque-multimedia" hidden>
+                <h2>Galería del Servicio</h2>
+                
+                <div id="bloque-imagenes" class="seccion-galeria" hidden>
+                    <p style="font-weight: 700;">Imágenes:</p>
+                    <div id="d-imagenes" style="display: grid; gap: 1rem;"></div>
+                </div>
 
-            <!-- Insumos y Equipos -->
-            <div class="insumos-section" id="bloque-insumos" hidden>
-                <h3>Insumos y Equipos</h3>
-                <ul id="d-insumos"></ul>
+                <div id="bloque-videos" class="seccion-galeria" hidden>
+                    <p style="font-weight: 700;">Videos:</p>
+                    <div id="d-videos" style="display: grid; gap: 1rem;"></div>
+                </div>
             </div>
         </div>
 
-        <!-- Botones de acción -->
+        <!-- Botones de acción dinámicos -->
         <div class="options-menu">
-            <a href="#" id="btn-agendar" class="btn btn-primary" hidden>Agendar este Servicio</a>
-            <a href="#" id="btn-editar" class="btn" hidden>Editar este Servicio</a>
-            <a href="{% url 'pagina-catalogo' %}" class="btn">Volver al Catálogo</a>
+            <a href="#" id="btn-agendar" class="btn-custom btn-principal" style="display: none;">Agendar este Servicio</a>
+            <a href="{% url 'pagina-catalogo' %}" id="btn-volver" class="btn-custom btn-secundario">Volver al Catálogo</a>
         </div>
     </div>
 </div>
@@ -51,57 +172,92 @@
 (function () {
     var h = BEC.h;
     var ID = parseInt("{{ pk }}", 10) || null;
-    var TIPOS = { INSUMO: 'Insumo', EQUIPO: 'Equipo', IMAGEN: 'Imagen', VIDEO: 'Video' };
-
-    function esUrl(t) { return /^https?:\/\//i.test(t); }
+    var TIPOS = { INSUMO: 'Insumo', PRODUCTO: 'Producto', EQUIPO: 'Equipo', FOTO: 'Fotografía', IMAGEN: 'Imagen', VIDEO: 'Video' };
 
     function pintar(s, perfil, miPerfilProveedor) {
         document.title = (s.nombre || 'Servicio') + ' - BienestarEnCasa';
-        document.getElementById('titulo-servicio').textContent = s.nombre || 'Servicio';
-        document.getElementById('d-proveedor').textContent = s.nombre_proveedor || 'Por asignar';
-        document.getElementById('d-duracion').textContent = (s.duracion_minutos || 60) + ' minutos';
-        document.getElementById('d-precio').textContent = BEC.dinero(s.precio);
-        document.getElementById('d-categoria').textContent = s.categoria_detalle ? s.categoria_detalle.nombre : 'Sin categoría';
-        document.getElementById('d-estado').textContent = (BEC.ESTADOS_SERVICIO && BEC.ESTADOS_SERVICIO[s.estado]) ? BEC.ESTADOS_SERVICIO[s.estado] : s.estado;
+        
+        // Asignación de datos a la tarjeta de información
+        document.getElementById('titulo-servicio').textContent = s.nombre || '{Nombre del Servicio}';
+        document.getElementById('d-proveedor').textContent = s.nombre_proveedor || '{Nombre del proveedor}';
+        document.getElementById('d-duracion').textContent = s.duracion_minutos ? s.duracion_minutos + ' minutos' : '{Duración del servicio}';
+        document.getElementById('d-precio').textContent = s.precio ? BEC.dinero(s.precio) : '{Precio del servicio}';
+        document.getElementById('d-categoria').textContent = s.categoria_detalle ? s.categoria_detalle.nombre : '{Nombre de la categoría}';
 
         var desc = document.getElementById('d-descripcion');
         if (desc) {
             desc.innerHTML = '';
-            String(s.descripcion || '').split(/\n+/).forEach(function (l) { 
+            var lineasDesc = String(s.descripcion || '{Descripción del servicio}').split(/\n+/);
+            lineasDesc.forEach(function (l) { 
                 if (l.trim()) { desc.appendChild(h('p', { text: l })); } 
             });
         }
 
+        // Asignación para imágenes y videos en la galería
         if (s.multimedia && s.multimedia.length) {
             document.getElementById('bloque-multimedia').hidden = false;
-            var ul = document.getElementById('d-multimedia');
+            var divImagenes = document.getElementById('d-imagenes');
+            var divVideos = document.getElementById('d-videos');
+            
             s.multimedia.forEach(function (m) {
-                var ref = esUrl(m.url_o_archivo)
-                    ? h('a', { href: m.url_o_archivo, target: '_blank', rel: 'noopener noreferrer', text: m.url_o_archivo })
-                    : m.url_o_archivo;
-                ul.appendChild(h('li', { class: 'media-item' }, h('strong', { text: (TIPOS[m.tipo] || m.tipo) + ': ' }), ref));
+                var url = m.archivo || m.url_o_archivo || '';
+                var descripcion = m.descripcion || (TIPOS[m.tipo] || m.tipo);
+                var tipoUpper = String(m.tipo).toUpperCase();
+
+                if (tipoUpper === 'FOTO' || tipoUpper === 'IMAGEN') {
+                    document.getElementById('bloque-imagenes').hidden = false;
+                    divImagenes.appendChild(h('img', { 
+                        src: url, 
+                        alt: descripcion, 
+                        loading: 'lazy', 
+                        style: 'display:block;max-width:100%;max-height:360px;border-radius:12px;' 
+                    }));
+                } else if (tipoUpper === 'VIDEO') {
+                    document.getElementById('bloque-videos').hidden = false;
+                    divVideos.appendChild(h('video', { 
+                        src: url, 
+                        controls: 'controls', 
+                        preload: 'metadata', 
+                        style: 'display:block;max-width:100%;max-height:360px;border-radius:12px;' 
+                    }));
+                }
             });
         }
 
-        if (s.insumos_equipos && s.insumos_equipos.length) {
+        var elementos = s.elementos || s.insumos_equipos || [];
+        if (elementos.length) {
             document.getElementById('bloque-insumos').hidden = false;
             var ul2 = document.getElementById('d-insumos');
-            s.insumos_equipos.forEach(function (i) {
-                ul2.appendChild(h('li', { text: i.nombre + (i.descripcion ? ' - ' + i.descripcion : '') + ' (' + (TIPOS[i.tipo] || i.tipo) + ')' }));
+            elementos.forEach(function (i) {
+                var detalleElemento = i.especificaciones || i.descripcion || '';
+                ul2.appendChild(h('li', { text: i.nombre + (detalleElemento ? ' - ' + detalleElemento : '') + ' (' + (TIPOS[i.tipo] || i.tipo) + ')' }));
             });
         }
 
-        // Acciones según el rol
+        // Configuración de botones según el perfil del usuario
         var agendar = document.getElementById('btn-agendar');
-        if (agendar && perfil.rol === 'CLIENTE' && s.estado === 'ACTIVO') {
+        var btnVolver = document.getElementById('btn-volver');
+
+        if (perfil.rol === 'CLIENTE' && s.estado === 'ACTIVO') {
             agendar.href = BEC.url(BEC.cfg.pages.solicitudCrear, s.id);
-            agendar.hidden = false;
+            agendar.style.display = 'inline-flex';
+            btnVolver.textContent = 'Volver al Catálogo';
+            btnVolver.href = "{% url 'pagina-catalogo' %}";
+        } else {
+            agendar.style.display = 'none';
         }
 
-        var editar = document.getElementById('btn-editar');
-        if (editar && perfil.rol === 'PROVEEDOR' && miPerfilProveedor && miPerfilProveedor.id === s.proveedor) {
-            editar.href = BEC.url(BEC.cfg.pages.servicioEditar, s.id);
-            editar.hidden = false;
+        if (perfil.rol === 'PROVEEDOR') {
+            agendar.style.display = 'none';
+            btnVolver.textContent = '← Volver';
+            btnVolver.href = BEC.url(BEC.cfg.pages.servicioEditar, s.id);
+            
+            btnVolver.addEventListener('click', function(e) {
+                if (document.referrer && document.referrer.includes('/mis-servicios/')) {
+                    e.preventDefault();
+                    window.history.back();
+                }
+            });
         }
 
         document.getElementById('detalle').hidden = false;

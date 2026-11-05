@@ -26,7 +26,7 @@
     .availability-day-label { display: flex; gap: .5rem; align-items: center; margin-bottom: .65rem; color: #0f172a; font-weight: 700; }
     .availability-times { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
     .availability-times label, .period-form label { display: block; color: #475569; font-size: .8rem; font-weight: 600; margin-bottom: .3rem; }
-    .availability-times input, .period-form input { width: 100%; padding: .6rem .65rem; border: 1px solid #cbd5e1; border-radius: .55rem; background: #f8fafc; box-sizing: border-box; }
+    .availability-times select, .period-form input { width: 100%; padding: .6rem .65rem; border: 1px solid #cbd5e1; border-radius: .55rem; background: #fff; box-sizing: border-box; font-size: 0.85rem; color: #0f172a; outline: none; }
     .availability-errors { color: #b91c1c; font-size: .82rem; margin: .35rem 0 0; }
     .availability-save, .period-form button, .period-delete button { background: #1a68ff; color: #fff; border: 0; border-radius: .65rem; padding: .7rem 1rem; font-weight: 700; cursor: pointer; }
     .availability-save { margin-top: 1rem; width: 100%; }
@@ -55,7 +55,7 @@
     <div class="availability-content">
         <header class="availability-heading">
             <h1>Disponibilidad del proveedor</h1>
-            <p>Configura tus días y horarios de atención y registra los periodos en los que no podrás prestar servicios.</p>
+            <p>Configura tus días y horarios de atención (Lunes a Viernes, 8:00 AM a 5:00 PM) y registra los periodos en los que no podrás prestar servicios.</p>
         </header>
 
         {% for message in messages %}
@@ -74,6 +74,7 @@
 
                     <div class="availability-days">
                         {% for dia in dias %}
+                            {% if dia.valor != 'SABADO' and dia.valor != 'DOMINGO' and dia.valor != 5 and dia.valor != 6 %}
                             <article class="availability-day">
                                 <label class="availability-day-label" for="dia-{{ dia.valor }}">
                                     <input id="dia-{{ dia.valor }}" type="checkbox" name="dias" value="{{ dia.valor }}" {% if dia.activo %}checked{% endif %}>
@@ -81,17 +82,40 @@
                                 </label>
                                 <div class="availability-times">
                                     <div>
-                                        <label for="{{ dia.hora_inicio.id_for_label }}">Desde</label>
-                                        {{ dia.hora_inicio }}
-                                        {% if dia.hora_inicio.errors %}<div class="availability-errors">{{ dia.hora_inicio.errors }}</div>{% endif %}
+                                        <label for="hora_inicio_{{ dia.valor }}">Desde</label>
+                                        <select id="hora_inicio_{{ dia.valor }}" name="hora_inicio_{{ dia.valor }}">
+                                            <option value="">Seleccione la hora de inicio</option>
+                                            <option value="08:00">08:00 AM</option>
+                                            <option value="09:00">09:00 AM</option>
+                                            <option value="10:00">10:00 AM</option>
+                                            <option value="11:00">11:00 AM</option>
+                                            <option value="12:00">12:00 PM</option>
+                                            <option value="13:00">01:00 PM</option>
+                                            <option value="14:00">02:00 PM</option>
+                                            <option value="15:00">03:00 PM</option>
+                                            <option value="16:00">04:00 PM</option>
+                                            <option value="17:00">05:00 PM</option>
+                                        </select>
                                     </div>
                                     <div>
-                                        <label for="{{ dia.hora_fin.id_for_label }}">Hasta</label>
-                                        {{ dia.hora_fin }}
-                                        {% if dia.hora_fin.errors %}<div class="availability-errors">{{ dia.hora_fin.errors }}</div>{% endif %}
+                                        <label for="hora_fin_{{ dia.valor }}">Hasta</label>
+                                        <select id="hora_fin_{{ dia.valor }}" name="hora_fin_{{ dia.valor }}">
+                                            <option value="">Seleccione la hora fin</option>
+                                            <option value="08:00">08:00 AM</option>
+                                            <option value="09:00">09:00 AM</option>
+                                            <option value="10:00">10:00 AM</option>
+                                            <option value="11:00">11:00 AM</option>
+                                            <option value="12:00">12:00 PM</option>
+                                            <option value="13:00">01:00 PM</option>
+                                            <option value="14:00">02:00 PM</option>
+                                            <option value="15:00">03:00 PM</option>
+                                            <option value="16:00">04:00 PM</option>
+                                            <option value="17:00">05:00 PM</option>
+                                        </select>
                                     </div>
                                 </div>
                             </article>
+                            {% endif %}
                         {% endfor %}
                     </div>
                     <button type="submit" class="availability-save">Guardar disponibilidad</button>
@@ -107,11 +131,13 @@
                     <div>
                         <label for="{{ periodo_form.fecha_inicio.id_for_label }}">{{ periodo_form.fecha_inicio.label }}</label>
                         {{ periodo_form.fecha_inicio }}
+                        <div id="error-fecha-inicio" class="availability-errors" style="display: none;">Día invalido, seleccione otro.</div>
                         {% if periodo_form.fecha_inicio.errors %}<div class="availability-errors">{{ periodo_form.fecha_inicio.errors }}</div>{% endif %}
                     </div>
                     <div>
                         <label for="{{ periodo_form.fecha_fin.id_for_label }}">{{ periodo_form.fecha_fin.label }}</label>
                         {{ periodo_form.fecha_fin }}
+                        <div id="error-fecha-fin" class="availability-errors" style="display: none;">Día invalido, seleccione otro.</div>
                         {% if periodo_form.fecha_fin.help_text %}<small>{{ periodo_form.fecha_fin.help_text }}</small>{% endif %}
                         {% if periodo_form.fecha_fin.errors %}<div class="availability-errors">{{ periodo_form.fecha_fin.errors }}</div>{% endif %}
                     </div>
@@ -148,4 +174,52 @@
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_body %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function validarFinDeSemana(input) {
+        if (!input) return;
+
+        // Crear elemento de mensaje si no existe dinámicamente
+        var msgError = input.nextElementSibling;
+        if (!msgError || !msgError.classList.contains('availability-errors')) {
+            msgError = document.createElement('div');
+            msgError.className = 'availability-errors';
+            msgError.style.display = 'none';
+            msgError.textContent = 'No se trabaja fines de semana.';
+            input.parentNode.insertBefore(msgError, input.nextSibling);
+        }
+
+        input.addEventListener('change', function() {
+            if (!this.value) {
+                msgError.style.display = 'none';
+                return;
+            }
+
+            var fechaPartes = this.value.split('-');
+            if (fechaPartes.length === 3) {
+                var anio = parseInt(fechaPartes[0], 10);
+                var mes = parseInt(fechaPartes[1], 10) - 1;
+                var dia = parseInt(fechaPartes[2], 10);
+                var fecha = new Date(anio, mes, dia);
+
+                var diaSemana = fecha.getDay();
+                if (diaSemana === 0 || diaSemana === 6) {
+                    this.value = '';
+                    msgError.style.display = 'block';
+                } else {
+                    msgError.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    var inputsFecha = document.querySelectorAll('.period-form input[type="date"], .period-form input[name*="fecha"]');
+    inputsFecha.forEach(function(input) {
+        validarFinDeSemana(input);
+    });
+});
+</script>
 {% endblock %}

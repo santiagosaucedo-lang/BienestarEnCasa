@@ -11,13 +11,6 @@
 <div style="background-color: #f8fafc; min-height: calc(100vh - 72px); padding: 2rem 1rem; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-sizing: border-box;">
   <div style="max-width: 68rem; margin: 0 auto;">
     
-    <!-- Volver / Cambiar perfil -->
-    <div style="margin-bottom: 1rem;">
-      <a href="{% url 'pagina-inicio' %}" style="color: #64748b; text-decoration: none; font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem;">
-        ← Cambiar perfil
-      </a>
-    </div>
-
     <!-- Encabezado del Perfil Proveedor -->
     <div style="background-color: #ffffff; border-radius: 1.25rem; border: 1px solid #e2e8f0; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; box-shadow: 0 1px 3px rgba(0,0,0,0.02); margin-bottom: 1.5rem;">
       <div style="display: flex; align-items: center; gap: 1.25rem;">
@@ -116,41 +109,9 @@
         <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0 0 0.25rem 0;">Días de atención</h3>
         <p style="color: #64748b; font-size: 0.9rem; margin: 0 0 1.25rem 0;">Este horario es el mismo de Disponibilidad. Los clientes solo verán estas franjas.</p>
         <div id="resumenHorarioReal" style="margin: 0 0 1rem 0; color: #0f172a; font-size: 0.9rem;">Cargando horario guardado...</div>
-        <p style="margin: 0 0 1rem 0;"><a href="/disponibilidad/" style="color: #0d9488; font-weight: 700;">Abrir configuración completa y periodos no disponibles</a></p>
-        
-        <div id="selectorDias" style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
-          <button type="button" class="btn-dia" data-dia="LUNES" style="padding: 0.65rem 1.25rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer; font-size: 0.9rem;">Lunes</button>
-          <button type="button" class="btn-dia" data-dia="MARTES" style="padding: 0.65rem 1.25rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer; font-size: 0.9rem;">Martes</button>
-          <button type="button" class="btn-dia" data-dia="MIERCOLES" style="padding: 0.65rem 1.25rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer; font-size: 0.9rem;">Miércoles</button>
-          <button type="button" class="btn-dia" data-dia="JUEVES" style="padding: 0.65rem 1.25rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer; font-size: 0.9rem;">Jueves</button>
-          <button type="button" class="btn-dia" data-dia="VIERNES" style="padding: 0.65rem 1.25rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer; font-size: 0.9rem;">Viernes</button>
-          <button type="button" class="btn-dia" data-dia="SABADO" style="padding: 0.65rem 1.25rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer; font-size: 0.9rem;">Sábado</button>
-          <button type="button" class="btn-dia" data-dia="DOMINGO" style="padding: 0.65rem 1.25rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer; font-size: 0.9rem;">Domingo</button>
-        </div>
+        <p style="margin: 0;"><a href="/disponibilidad/" style="color: #0d9488; font-weight: 700; font-size: 0.9rem; text-decoration: underline;">Abrir configuración completa y periodos no disponibles</a></p>
       </div>
 
-      <div style="background-color: #ffffff; border-radius: 1.25rem; border: 1px solid #e2e8f0; padding: 1.75rem; margin-bottom: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-        <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0 0 0.25rem 0;">Horarios disponibles</h3>
-        <p style="color: #64748b; font-size: 0.9rem; margin: 0 0 1.25rem 0;">Selecciona las franjas horarias en que puedes atender.</p>
-
-        <div id="selectorHoras" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.75rem;">
-          <button type="button" class="btn-hora" data-hora="07:00:00" style="padding: 0.65rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer;">07:00 AM</button>
-          <button type="button" class="btn-hora" data-hora="08:00:00" style="padding: 0.65rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer;">08:00 AM</button>
-          <button type="button" class="btn-hora" data-hora="09:00:00" style="padding: 0.65rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer;">09:00 AM</button>
-          <button type="button" class="btn-hora" data-hora="10:00:00" style="padding: 0.65rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer;">10:00 AM</button>
-          <button type="button" class="btn-hora" data-hora="11:00:00" style="padding: 0.65rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer;">11:00 AM</button>
-          <button type="button" class="btn-hora" data-hora="12:00:00" style="padding: 0.65rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer;">12:00 PM</button>
-          <button type="button" class="btn-hora" data-hora="13:00:00" style="padding: 0.65rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer;">01:00 PM</button>
-          <button type="button" class="btn-hora" data-hora="14:00:00" style="padding: 0.65rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer;">02:00 PM</button>
-          <button type="button" class="btn-hora" data-hora="15:00:00" style="padding: 0.65rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer;">03:00 PM</button>
-          <button type="button" class="btn-hora" data-hora="16:00:00" style="padding: 0.65rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer;">04:00 PM</button>
-          <button type="button" class="btn-hora" data-hora="17:00:00" style="padding: 0.65rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff; color: #334155; font-weight: 700; cursor: pointer;">05:00 PM</button>
-        </div>
-      </div>
-
-      <button type="button" id="btnGuardarHorario" style="width: 100%; background-color: #0d9488; color: #ffffff; font-weight: 700; padding: 0.95rem; border-radius: 0.75rem; border: none; font-size: 1rem; cursor: pointer; transition: background-color 0.2s ease;">
-        Guardar horario
-      </button>
     </div>
 
   </div>
@@ -162,6 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const tabContents = document.querySelectorAll('.tab-content');
   let todasLasSolicitudes = [];
   let mapaServicios = {};
+  let disponibilidadProveedor = [];
 
   // Pestañas
   tabBtns.forEach(btn => {
@@ -185,17 +147,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Extraer el nombre real del cliente
   function obtenerNombreCliente(s) {
     if (!s) return 'Usuario';
-    
-    // 1. Campo explícito del Serializer
-    if (s.cliente_nombre && s.cliente_nombre.trim() !== '' && s.cliente_nombre !== 'Usuario') {
-      return s.cliente_nombre;
-    }
+    if (s.cliente_nombre && s.cliente_nombre.trim() !== '' && s.cliente_nombre !== 'Usuario') return s.cliente_nombre;
     if (s.nombre_cliente && s.nombre_cliente.trim() !== '') return s.nombre_cliente;
-    
-    // 2. Si el cliente viene como un objeto anidado
+
     if (s.cliente) {
       if (typeof s.cliente === 'object') {
         const nom = s.cliente.first_name || s.cliente.nombres || s.cliente.nombre || '';
@@ -208,9 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return s.cliente;
       }
     }
-    
     if (s.usuario_nombre) return s.usuario_nombre;
-    
     return 'Usuario';
   }
 
@@ -266,33 +220,36 @@ document.addEventListener('DOMContentLoaded', function() {
     if (rawHora.includes('14:00') || rawHora.includes('02:00')) return '02:00 PM';
     if (rawHora.includes('15:00') || rawHora.includes('03:00')) return '03:00 PM';
     if (rawHora.includes('16:00') || rawHora.includes('04:00')) return '04:00 PM';
+    if (rawHora.includes('17:00') || rawHora.includes('05:00')) return '05:00 PM';
     return rawHora;
   }
 
   function cargarCatalogoServicios() {
-    fetch('/api/catalogo/servicios/')
-      .then(r => r.ok ? r.json() : [])
-      .then(data => {
-        const lista = Array.isArray(data) ? data : (data.results || []);
-        lista.forEach(s => {
-          mapaServicios[s.id] = s.nombre || s.titulo || 'Servicio';
-        });
+    window.BEC.api(window.BEC.cfg.api.servicios, { method: 'GET' })
+      .then(function(res) {
+        if (res.ok) {
+          window.BEC.lista(res.data).forEach(function(s) {
+            mapaServicios[s.id] = s.nombre || s.titulo || 'Servicio';
+          });
+        }
         cargarDatosProveedor();
       })
-      .catch(() => {
+      .catch(function() {
         cargarDatosProveedor();
       });
   }
 
-  // Cargar Solicitudes Reales
   function cargarDatosProveedor() {
-    var urlSolicitudes = (window.BEC && window.BEC.cfg && window.BEC.cfg.api && window.BEC.cfg.api.solicitudes) ? window.BEC.cfg.api.solicitudes : '/api/solicitudes/';
+    window.BEC.api(window.BEC.cfg.api.solicitudes, { method: 'GET' })
+      .then(function(res) {
+        if (!res.ok) {
+          console.error('Error al cargar solicitudes:', res.status, res.data);
+          renderizarSeccionesSolicitudes([]);
+          return;
+        }
 
-    fetch(urlSolicitudes)
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        todasLasSolicitudes = window.BEC && window.BEC.lista ? window.BEC.lista(data) : (Array.isArray(data) ? data : (data.results || []));
-        
+        todasLasSolicitudes = window.BEC.lista(res.data);
+
         const pendientes = todasLasSolicitudes.filter(s => (s.estado || '').toUpperCase() === 'PENDIENTE');
         const clientes = todasLasSolicitudes.filter(s => ['ACEPTADA', 'ACEPTADO', 'REALIZADO', 'COMPLETADO'].includes((s.estado || '').toUpperCase()));
 
@@ -314,7 +271,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const pendientes = lista.filter(s => (s.estado || '').toUpperCase() === 'PENDIENTE');
     const respondidas = lista.filter(s => (s.estado || '').toUpperCase() !== 'PENDIENTE');
 
-    // Renderizar "POR RESPONDER"
     if (pendientes.length === 0) {
       contenedorPorResponder.innerHTML = `
         <div style="background-color: #ffffff; border-radius: 1.25rem; border: 1px solid #fef3c7; padding: 2rem; text-align: center; color: #64748b;">
@@ -326,15 +282,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const servicio = obtenerNombreServicio(sol);
         const fecha = obtenerFecha(sol);
         const hora = obtenerHora(sol);
-        
-        // Extraer nota adicional
+
         const rawNota = (sol.informacion_complementaria || sol.observaciones || sol.notas_adicionales || sol.descripcion || '').trim();
-        // Ocultar si está vacía o es el texto por defecto
         const mostrarNota = rawNota !== '' && rawNota.toLowerCase() !== 'dirección del perfil' && rawNota.toLowerCase() !== 'direccion del perfil';
 
         return `
           <div style="background-color: #ffffff; border-radius: 1.25rem; border: 1px solid #fef3c7; padding: 1.5rem; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-            
+
             <div style="position: absolute; top: 1.5rem; right: 1.5rem;">
               <span style="background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: 0.8rem; font-weight: 700; padding: 0.35rem 0.85rem; border-radius: 9999px; display: inline-flex; align-items: center; gap: 0.35rem;">
                 <svg style="width: 0.85rem; height: 0.85rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -362,7 +316,6 @@ document.addEventListener('DOMContentLoaded', function() {
               </div>
             ` : ''}
 
-            <!-- Botones de Acción -->
             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
               <button onclick="responderSolicitud(${sol.id}, 'ACEPTADA')" style="background-color: #0d9488; color: #ffffff; border: none; padding: 0.65rem 1.25rem; border-radius: 0.65rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.9rem;">
                 <svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
@@ -385,7 +338,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }).join('');
     }
 
-    // Renderizar "RESPONDIDAS"
     if (respondidas.length === 0) {
       contenedorRespondidas.innerHTML = `
         <div style="background-color: #ffffff; border-radius: 1.25rem; border: 1px solid #e2e8f0; padding: 2rem; text-align: center; color: #64748b;">
@@ -464,21 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }).join('');
   }
 
-
-  const MAPA_DIAS = {LUNES:0, MARTES:1, MIERCOLES:2, JUEVES:3, VIERNES:4, SABADO:5, DOMINGO:6};
   const NOMBRES_DIA = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
-
-  function pintarBoton(btn, activo) {
-    btn.classList.toggle('active', activo);
-    btn.style.backgroundColor = activo ? '#0d9488' : '#ffffff';
-    btn.style.color = activo ? '#ffffff' : '#334155';
-    btn.style.borderColor = activo ? '#0d9488' : '#e2e8f0';
-    if (btn.classList.contains('btn-hora')) {
-      const base = (btn.getAttribute('data-label') || btn.innerText.replace('✓ ', '')).trim();
-      btn.setAttribute('data-label', base);
-      btn.innerText = (activo ? '✓ ' : '') + base;
-    }
-  }
 
   function csrf() {
     var csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
@@ -492,147 +430,182 @@ document.addEventListener('DOMContentLoaded', function() {
     return data;
   }
 
-  let horarioGuardado = [];
-
-  function horaAMin(h) {
-    const p = String(h).slice(0,5).split(':');
-    return parseInt(p[0],10)*60 + parseInt(p[1],10);
-  }
-
   async function cargarHorarioPanel() {
     const resumen = document.getElementById('resumenHorarioReal');
     try {
       const data = await apiJson('/api/proveedores/disponibilidad/');
-      horarioGuardado = Array.isArray(data) ? data : (data.results || []);
-    } catch (e) {
-      horarioGuardado = [];
-      if (resumen) resumen.textContent = 'No se pudo leer la disponibilidad. Inicia sesión como proveedor.';
-      return;
-    }
-    document.querySelectorAll('.btn-dia, .btn-hora').forEach(b => pintarBoton(b, false));
-    const dias = new Set(horarioGuardado.map(h => Number(h.dia_semana)));
-    document.querySelectorAll('.btn-dia').forEach(b => {
-      if (dias.has(MAPA_DIAS[b.getAttribute('data-dia')])) pintarBoton(b, true);
-    });
-    if (horarioGuardado.length) {
-      const mismos = horarioGuardado.every(h => h.hora_inicio === horarioGuardado[0].hora_inicio && h.hora_fin === horarioGuardado[0].hora_fin);
-      if (mismos) {
-        const ini = horaAMin(horarioGuardado[0].hora_inicio);
-        const fin = horaAMin(horarioGuardado[0].hora_fin);
-        document.querySelectorAll('.btn-hora').forEach(b => {
-          const m = horaAMin(b.getAttribute('data-hora'));
-          if (m >= ini && m < fin) pintarBoton(b, true);
-        });
-      }
-    }
-    if (resumen) {
-      if (!horarioGuardado.length) {
-        resumen.textContent = 'Aún no hay horario guardado. Lo que elijas aquí se publica a los clientes.';
+      disponibilidadProveedor = Array.isArray(data) ? data : (data.results || []);
+      
+      if (!disponibilidadProveedor.length) {
+        resumen.textContent = 'Aún no hay horario guardado.';
       } else {
-        resumen.innerHTML = horarioGuardado.map(h => '<div><strong>' + NOMBRES_DIA[Number(h.dia_semana)] + ':</strong> ' + String(h.hora_inicio).slice(0,5) + ' – ' + String(h.hora_fin).slice(0,5) + '</div>').join('');
+        resumen.innerHTML = disponibilidadProveedor.map(h => '<div><strong>' + NOMBRES_DIA[Number(h.dia_semana)] + ':</strong> ' + String(h.hora_inicio).slice(0,5) + ' – ' + String(h.hora_fin).slice(0,5) + '</div>').join('');
       }
+    } catch (e) {
+      if (resumen) resumen.textContent = 'No se pudo leer la disponibilidad. Inicia sesión como proveedor.';
     }
   }
 
-  document.getElementById('btnGuardarHorario')?.addEventListener('click', async function() {
-    const btn = this;
-    const diasSel = [...document.querySelectorAll('.btn-dia.active')].map(b => MAPA_DIAS[b.getAttribute('data-dia')]);
-    const horas = [...document.querySelectorAll('.btn-hora.active')].map(b => horaAMin(b.getAttribute('data-hora'))).sort((a,b)=>a-b);
-    if (diasSel.length && !horas.length) {
-      alert('Selecciona al menos una franja horaria.');
-      return;
-    }
-    const ini = horas.length ? horas[0] : null;
-    const fin = horas.length ? horas[horas.length-1] + 60 : null;
-    const fmt = m => String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
-    btn.disabled = true;
-    try {
-      const actuales = horarioGuardado.slice();
-      for (const h of actuales) {
-        if (!diasSel.includes(Number(h.dia_semana))) {
-          await apiJson('/api/proveedores/disponibilidad/' + h.id + '/', {method:'DELETE'});
-        }
-      }
-      for (const dia of diasSel) {
-        const existente = actuales.find(h => Number(h.dia_semana) === dia);
-        const body = JSON.stringify({dia_semana: dia, hora_inicio: fmt(ini), hora_fin: fmt(fin)});
-        if (existente) {
-          await apiJson('/api/proveedores/disponibilidad/' + existente.id + '/', {method:'PATCH', headers:{'Content-Type':'application/json','X-CSRFToken': csrf()}, body});
-        } else {
-          await apiJson('/api/proveedores/disponibilidad/', {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken': csrf()}, body});
-        }
-      }
-      await cargarHorarioPanel();
-      alert('Horario guardado. El cliente verá exactamente estas franjas.');
-    } catch (e) {
-      alert((e && (e.hora_fin || e.detail || e.dia_semana)) ? JSON.stringify(e) : 'No se pudo guardar el horario.');
-    } finally {
-      btn.disabled = false;
-    }
-  });
-
   cargarHorarioPanel();
 
-  // Interacción Horario
-  document.querySelectorAll('.btn-dia, .btn-hora').forEach(btn => {
-    btn.addEventListener('click', function() {
-      this.classList.toggle('active');
-      if (this.classList.contains('active')) {
-        this.style.backgroundColor = '#0d9488';
-        this.style.color = '#ffffff';
-        this.style.borderColor = '#0d9488';
-        if (this.classList.contains('btn-hora') && !this.innerText.includes('✓')) {
-          this.innerText = '✓ ' + this.innerText;
-        }
-      } else {
-        this.style.backgroundColor = '#ffffff';
-        this.style.color = '#334155';
-        this.style.borderColor = '#e2e8f0';
-        this.innerText = this.innerText.replace('✓ ', '');
-      }
-    });
-  });
-
   window.responderSolicitud = function(id, nuevoEstado) {
-    var csrfToken = '';
-    var csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
-    if (csrfInput) csrfToken = csrfInput.value;
-
-    fetch('/api/solicitudes/' + id + '/', {
+    window.BEC.api(window.BEC.url(window.BEC.cfg.api.solicitud, id), {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrfToken
-      },
-      credentials: 'same-origin',
-      body: JSON.stringify({ estado: nuevoEstado })
-    }).then(function() {
+      body: { estado: nuevoEstado }
+    }).then(function(res) {
+      if (!res.ok) {
+        var detalle = (res.data && res.data.detail) ? res.data.detail : 'Inténtalo de nuevo.';
+        alert('No se pudo actualizar la solicitud: ' + detalle);
+        return;
+      }
       cargarDatosProveedor();
+    }).catch(function() {
+      alert('Error de conexión al actualizar la solicitud.');
     });
   };
+
+  var modalContraproponer = document.getElementById('modalContraproponer');
+  var btnCancelarContrapropuesta = document.getElementById('btnCancelarContrapropuesta');
+  var btnConfirmarContrapropuesta = document.getElementById('btnConfirmarContrapropuesta');
+  var solicitudIdContrapropuesta = null;
+  var selectFranja = document.getElementById('selectFranjaHoraria');
+
+  function formatearHoraLectura(h24Str) {
+    var partes = h24Str.split(':');
+    var h = parseInt(partes[0], 10);
+    var m = partes[1] || '00';
+    var ampm = h >= 12 ? 'PM' : 'AM';
+    var h12 = h % 12;
+    if (h12 === 0) h12 = 12;
+    var hFormat = h12 < 10 ? '0' + h12 : h12;
+    return hFormat + ':' + m + ' ' + ampm;
+  }
 
   window.contraproponer = function(id) {
-    const nuevaHora = prompt("Ingresa la nueva hora propuesta (ej: 10:30 AM):");
-    if (!nuevaHora) return;
+    if (!id) return;
+    solicitudIdContrapropuesta = id;
+    
+    var sol = todasLasSolicitudes.find(s => s.id === id);
+    var rawFecha = sol ? (sol.fecha_solicitada || sol.fecha_preferida || sol.fecha_servicio || sol.fecha) : null;
+    
+    selectFranja.innerHTML = '<option value="">-- Selecciona una hora disponible --</option>';
 
-    var csrfToken = '';
-    var csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
-    if (csrfInput) csrfToken = csrfInput.value;
+    if (rawFecha) {
+      var d = new Date(rawFecha + (rawFecha.includes('T') ? '' : 'T00:00:00'));
+      var diaJS = d.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
+      var mapaDiaBackend = (diaJS === 0) ? 6 : (diaJS - 1); // 0 = Lunes, ..., 6 = Domingo
 
-    fetch('/api/solicitudes/' + id + '/', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrfToken
-      },
-      credentials: 'same-origin',
-      body: JSON.stringify({ hora_solicitada: nuevaHora, observaciones: "Cambio de hora solicitado por el proveedor" })
-    }).then(function() {
-      cargarDatosProveedor();
-    });
+      var horarioDia = disponibilidadProveedor.find(h => Number(h.dia_semana) === mapaDiaBackend);
+
+      if (horarioDia) {
+        var iniH = parseInt(horarioDia.hora_inicio.split(':')[0], 10);
+        var finH = parseInt(horarioDia.hora_fin.split(':')[0], 10);
+
+        for (var h = iniH; h < finH; h++) {
+          var h24 = (h < 10 ? '0' + h : h) + ':00:00';
+          var opt = document.createElement('option');
+          opt.value = h24; // Formato 24h para backend
+          opt.textContent = formatearHoraLectura(h24); // Formato legible (AM/PM)
+          selectFranja.appendChild(opt);
+        }
+      }
+    }
+
+    // Si no hay horario cargado, ofrece las franjas base (08:00 a 17:00)
+    if (selectFranja.options.length <= 1) {
+      for (var h = 8; h <= 17; h++) {
+        var h24 = (h < 10 ? '0' + h : h) + ':00:00';
+        var opt = document.createElement('option');
+        opt.value = h24;
+        opt.textContent = formatearHoraLectura(h24);
+        selectFranja.appendChild(opt);
+      }
+    }
+
+    modalContraproponer.style.display = 'flex';
   };
 
+  if (btnCancelarContrapropuesta) {
+    btnCancelarContrapropuesta.addEventListener('click', function() {
+      modalContraproponer.style.display = 'none';
+      solicitudIdContrapropuesta = null;
+    });
+  }
+
+  if (btnConfirmarContrapropuesta) {
+    btnConfirmarContrapropuesta.addEventListener('click', function() {
+      if (!solicitudIdContrapropuesta) return;
+
+      var horaValor24h = selectFranja.value;
+      if (!horaValor24h) {
+        alert('Por favor selecciona una hora propuesta de la lista.');
+        return;
+      }
+
+      var textoOriginal = btnConfirmarContrapropuesta.textContent;
+      btnConfirmarContrapropuesta.textContent = 'Enviando...';
+      btnConfirmarContrapropuesta.disabled = true;
+
+      window.BEC.api(window.BEC.url(window.BEC.cfg.api.solicitud, solicitudIdContrapropuesta), {
+        method: 'PATCH',
+        body: { 
+          hora_solicitada: horaValor24h, 
+          observaciones: "Cambio de hora solicitado por el proveedor" 
+        }
+      }).then(function(res) {
+        if (!res.ok) {
+          var detalle = (res.data && res.data.detail) ? res.data.detail : 'Inténtalo de nuevo.';
+          alert('No se pudo proponer la nueva hora: ' + detalle);
+          return;
+        }
+        modalContraproponer.style.display = 'none';
+        if (typeof cargarDatosProveedor === 'function') {
+          cargarDatosProveedor();
+        }
+      }).catch(function() {
+        alert('Error de conexión al proponer la nueva hora.');
+      }).finally(function() {
+        btnConfirmarContrapropuesta.textContent = textoOriginal;
+        btnConfirmarContrapropuesta.disabled = false;
+        solicitudIdContrapropuesta = null;
+      });
+    });
+  }
   cargarCatalogoServicios();
 });
 </script>
+
+<!-- Modal Contraproponer Horario -->
+<div id="modalContraproponer" style="display: none; position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+  <div style="background-color: #ffffff; border-radius: 1.25rem; max-width: 24rem; width: 100%; padding: 1.75rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); text-align: center; border: 1px solid #e2e8f0;">
+    
+    <div style="width: 3rem; height: 3rem; background-color: #eff6ff; color: #3b82f6; border-radius: 9999px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto;">
+      <svg style="width: 1.5rem; height: 1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+    </div>
+
+    <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0 0 0.5rem 0;">Proponer nuevo horario</h3>
+    <p style="color: #64748b; font-size: 0.875rem; margin: 0 0 1.25rem 0; line-height: 1.4;">
+      Selecciona una de tus horas de atención disponibles para este día:
+    </p>
+
+    <!-- Selector dinámico de franjas horarias -->
+    <div style="margin-bottom: 1.5rem;">
+      <select id="selectFranjaHoraria" style="width: 100%; padding: 0.75rem; border-radius: 0.75rem; border: 1px solid #cbd5e1; background-color: #f8fafc; font-size: 0.95rem; font-weight: 600; color: #0f172a; outline: none; cursor: pointer;">
+        <option value="">-- Selecciona una hora disponible --</option>
+      </select>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem;">
+      <button type="button" id="btnCancelarContrapropuesta" style="flex: 1; background-color: #f1f5f9; color: #475569; font-weight: 700; padding: 0.7rem; border-radius: 0.75rem; border: none; font-size: 0.875rem; cursor: pointer; transition: background-color 0.2s ease;">
+        Cancelar
+      </button>
+      <button type="button" id="btnConfirmarContrapropuesta" style="flex: 1; background-color: #2563eb; color: #ffffff; font-weight: 700; padding: 0.7rem; border-radius: 0.75rem; border: none; font-size: 0.875rem; cursor: pointer; transition: background-color 0.2s ease;">
+        Confirmar
+      </button>
+    </div>
+
+  </div>
+</div>
 {% endblock %}

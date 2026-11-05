@@ -57,11 +57,21 @@ class PerfilSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='usuario.email', read_only=True)
     nombres = serializers.CharField(source='usuario.first_name', read_only=True)
     apellidos = serializers.CharField(source='usuario.last_name', read_only=True)
+    direccion_principal = serializers.SerializerMethodField()
 
     class Meta:
         model = PerfilUsuario
-        fields = ('id', 'email', 'nombres', 'apellidos', 'rol', 'telefono', 'creado_en', 'actualizado_en')
+        fields = (
+            'id', 'email', 'nombres', 'apellidos', 'rol', 'telefono',
+            'direccion_principal', 'creado_en', 'actualizado_en',
+        )
         read_only_fields = ('id', 'rol', 'creado_en', 'actualizado_en')
+
+    def get_direccion_principal(self, obj):
+        direccion = obj.usuario.direcciones.filter(es_principal=True).first()
+        if direccion:
+            return DireccionSerializer(direccion).data
+        return None
 
 
 class ActualizarPerfilSerializer(serializers.ModelSerializer):
@@ -154,16 +164,22 @@ class DireccionSerializer(serializers.ModelSerializer):
 
 
 class PerfilProveedorSerializer(serializers.ModelSerializer):
+    zonas_atencion = serializers.SerializerMethodField()
+
     class Meta:
         model = PerfilProveedor
         fields = (
             'id',
             'descripcion_profesional',
+            'zonas_atencion',
             'creado_en',
             'actualizado_en',
         )
         read_only_fields = ('id', 'creado_en', 'actualizado_en')
 
+    def get_zonas_atencion(self, obj):
+        zonas = obj.zonas_atencion.all()
+        return ZonaAtencionSerializer(zonas, many=True).data
 
 class ZonaAtencionSerializer(serializers.ModelSerializer):
     class Meta:

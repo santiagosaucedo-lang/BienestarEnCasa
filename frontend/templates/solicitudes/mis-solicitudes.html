@@ -98,9 +98,11 @@ document.addEventListener('DOMContentLoaded', function() {
     var urlServicios = (window.BEC && window.BEC.cfg && window.BEC.cfg.api && window.BEC.cfg.api.servicios) ? window.BEC.cfg.api.servicios : '/api/catalogo/servicios/';
     var urlCategorias = '/api/catalogo/categorias/';
 
+    // CAMBIO 1: Usar window.BEC.api en el Promise.all
+    // Nota: Como BEC.api ya extrae el JSON, solo leemos r.data
     Promise.all([
-      fetch(urlCategorias).then(r => r.ok ? r.json() : []).catch(() => []),
-      fetch(urlServicios).then(r => r.ok ? r.json() : []).catch(() => [])
+      window.BEC.api(urlCategorias).then(r => (r && r.ok) ? r.data : []).catch(() => []),
+      window.BEC.api(urlServicios).then(r => (r && r.ok) ? r.data : []).catch(() => [])
     ]).then(function(respuestas) {
       // 1. Mapear Categorías
       var listaCats = Array.isArray(respuestas[0]) ? respuestas[0] : (respuestas[0].results || []);
@@ -243,10 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
               </svg>
             </div>
             <div>
-              <!-- NOMBRE DEL SERVICIO (Manicure, Masaje, etc.) -->
               <h3 style="font-size: 1.25rem; font-weight: 700; color: #0f172a; margin: 0 0 0.35rem 0;">${servicioNombre}</h3>
-              
-              <!-- NOMBRE DE LA CATEGORÍA (Peluquería, Masajes no Médicos, etc.) DEBAJO DEL TÍTULO -->
               <p style="color: #64748b; font-size: 0.9rem; margin: 0 0 0.85rem 0;">${categoria}</p>
               
               <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; font-size: 0.85rem; color: #64748b;">
@@ -280,11 +279,16 @@ document.addEventListener('DOMContentLoaded', function() {
   function cargarSolicitudesReales() {
     var urlApi = (window.BEC && window.BEC.cfg && window.BEC.cfg.api && window.BEC.cfg.api.solicitudes) ? window.BEC.cfg.api.solicitudes : '/api/solicitudes/';
     
-    fetch(urlApi)
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        todasLasSolicitudes = window.BEC && window.BEC.lista ? window.BEC.lista(data) : (Array.isArray(data) ? data : (data.results || []));
-        renderizarSolicitudes(todasLasSolicitudes);
+    // CAMBIO 2: Usar window.BEC.api en lugar de fetch()
+    window.BEC.api(urlApi)
+      .then(function(res) {
+        if (res && res.ok) {
+          var data = res.data; // BEC.api ya entrega el JSON parseado en .data
+          todasLasSolicitudes = window.BEC && window.BEC.lista ? window.BEC.lista(data) : (Array.isArray(data) ? data : (data.results || []));
+          renderizarSolicitudes(todasLasSolicitudes);
+        } else {
+          renderizarSolicitudes([]);
+        }
       })
       .catch(function() {
         renderizarSolicitudes([]);

@@ -44,7 +44,7 @@
     
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
       <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;">Agregar nuevo servicio</h2>
-      <button type="button" id="btnCerrarModalServicio" style="background: none; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer; line-height: 1;">&times;</button>
+      <button type="button" id="btnCerrarModalServicio" style="background: none; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer; line-height: 1;">×</button>
     </div>
 
     <div id="msjModalServicio"></div>
@@ -59,7 +59,7 @@
       <div style="margin-bottom: 1rem;">
         <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem;">Categoría *</label>
         <select id="selectCategoriaServicio" style="width: 100%; box-sizing: border-box; padding: 0.75rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; outline: none; font-size: 0.9rem; background: #fff;">
-          <option value="">Cargando categorías...</option>
+          <option value="">-- Selecciona una categoría --</option>
         </select>
       </div>
 
@@ -75,6 +75,14 @@
         </div>
       </div>
 
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem;">Estado del Servicio</label>
+        <select name="selectEstadoServicio" id="selectEstadoServicio" style="width: 100%; box-sizing: border-box; padding: 0.75rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; outline: none; font-size: 0.9rem; background: #fff;">
+          <option value="activo">Activo</option>
+          <option value="inactivo">Inactivo</option>
+        </select>
+      </div>
+
       <div style="margin-bottom: 1.5rem;">
         <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem;">Descripción del servicio (opcional)</label>
         <textarea id="inputDescServicio" rows="3" placeholder="Detalla lo que incluye el servicio..." style="width: 100%; box-sizing: border-box; padding: 0.75rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; outline: none; font-size: 0.9rem; resize: vertical;"></textarea>
@@ -87,6 +95,33 @@
   </div>
 </div>
 
+<!-- Modal Personalizado de Confirmación de Eliminación -->
+<div id="modalEliminarServicio" style="display: none; position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+  <div style="background-color: #ffffff; border-radius: 1.25rem; max-width: 24rem; width: 100%; padding: 1.75rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); text-align: center; border: 1px solid #e2e8f0;">
+    
+    <div style="width: 3rem; height: 3rem; background-color: #fef2f2; color: #ef4444; border-radius: 9999px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto;">
+      <svg style="width: 1.5rem; height: 1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+      </svg>
+    </div>
+
+    <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0 0 0.5rem 0;">¿Eliminar este Servicio?</h3>
+    <p style="color: #64748b; font-size: 0.875rem; margin: 0 0 1.5rem 0; line-height: 1.4;">
+      ¿Estás seguro de que deseas eliminar este servicio? Esta acción no se puede deshacer.
+    </p>
+
+    <div style="display: flex; gap: 0.75rem;">
+      <button type="button" id="btnCancelarModalServicio" style="flex: 1; background-color: #f1f5f9; color: #475569; font-weight: 700; padding: 0.7rem; border-radius: 0.75rem; border: none; font-size: 0.875rem; cursor: pointer; transition: background-color 0.2s ease;">
+        Cancelar
+      </button>
+      <button type="button" id="btnConfirmarModalServicio" style="flex: 1; background-color: #ef4444; color: #ffffff; font-weight: 700; padding: 0.7rem; border-radius: 0.75rem; border: none; font-size: 0.875rem; cursor: pointer; transition: background-color 0.2s ease;">
+        Eliminar
+      </button>
+    </div>
+
+  </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const grid = document.getElementById('gridMisServicios');
@@ -96,63 +131,140 @@ document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('formCrearServicio');
   const msjBox = document.getElementById('msjModalServicio');
   const selectCat = document.getElementById('selectCategoriaServicio');
+  const btnLogout = document.getElementById('btn-cerrar-sesion');
 
-  // Función global para eliminar servicio con petición DELETE
-  window.eliminarServicio = function(servicioId, nombreServicio) {
-    if (!confirm('¿Estás seguro de que deseas eliminar el servicio "' + nombreServicio + '"?')) {
-      return;
-    }
-
-    var csrfToken = '';
-    var csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
-    if (csrfInput) csrfToken = csrfInput.value;
-
-    fetch('/api/catalogo/servicios/' + servicioId + '/', {
-      method: 'DELETE',
-      headers: {
-        'X-CSRFToken': csrfToken
-      },
-      credentials: 'same-origin'
-    })
-    .then(function(res) {
-      if (res.ok || res.status === 204) {
-        var card = document.getElementById('card-servicio-' + servicioId);
-        if (card) {
-          card.remove();
-        } else {
-          cargarServiciosProveedor();
-        }
-      } else {
-        alert('No se pudo eliminar el servicio. Verifica que tengas los permisos correspondientes.');
-      }
-    })
-    .catch(function(err) {
-      console.error('Error al eliminar servicio:', err);
-      alert('Error de conexión al intentar eliminar el servicio.');
+  if (btnLogout && window.BEC && window.BEC.cerrarSesion) {
+    btnLogout.addEventListener('click', function() {
+      window.BEC.cerrarSesion();
     });
+  }
+
+  function mostrarErrorModal(texto) {
+    if (msjBox) {
+      msjBox.innerHTML = '<div style="color: #ef4444; font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem;">' + texto + '</div>';
+    }
+  }
+
+  function escaparHtml(valor) {
+  if (valor == null) return '';
+  const div = document.createElement('div');
+  div.textContent = String(valor);
+  return div.innerHTML;
+}
+
+  var modalEliminarServicio = document.getElementById('modalEliminarServicio');
+  var btnCancelarModalServicio = document.getElementById('btnCancelarModalServicio'); 
+  var btnConfirmarModalServicio = document.getElementById('btnConfirmarModalServicio'); 
+  var servicioIdAEliminar = null;
+
+  window.eliminarServicio = function(servicioId, nombreServicio) {
+    if (!servicioId) return;
+    servicioIdAEliminar = servicioId;
+    modalEliminarServicio.style.display = 'flex';
   };
 
-  // Cargar Categorías desde la API
-  function cargarCategorias() {
-    fetch('/api/catalogo/categorias/')
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        const cats = Array.isArray(data) ? data : (data.results || []);
-        if (cats.length > 0) {
-          selectCat.innerHTML = cats.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+  if (btnCancelarModalServicio) {
+    btnCancelarModalServicio.addEventListener('click', function() {
+      modalEliminarServicio.style.display = 'none';
+      servicioIdAEliminar = null;
+    });
+  }
+
+  if (btnConfirmarModalServicio) {
+    btnConfirmarModalServicio.addEventListener('click', function() {
+      if (!servicioIdAEliminar) return;
+
+      var textoOriginal = btnConfirmarModalServicio.textContent;
+      btnConfirmarModalServicio.textContent = 'Eliminando...';
+      btnConfirmarModalServicio.disabled = true;
+
+      window.BEC.api(window.BEC.url(window.BEC.cfg.api.servicios + '{id}/', servicioIdAEliminar), {
+        method: 'DELETE'
+      })
+      .then(function(res) {
+        if (res.ok || res.status === 204) {
+          var card = document.getElementById('card-servicio-' + servicioIdAEliminar);
+          if (card) {
+            card.remove();
+          } else if (typeof cargarServiciosProveedor === 'function') {
+            cargarServiciosProveedor();
+          }
+        } else if (res.status === 405) {
+          alert('Esta operación aún no está habilitada en el servidor.');
+        } else if (res.status === 403) {
+          alert('No tienes permiso para eliminar este servicio.');
         } else {
-          selectCat.innerHTML = `<option value="1">Peluquería</option><option value="2">Masajes no Médicos</option>`;
+          alert('No se pudo eliminar el servicio.');
         }
       })
+      .catch(function(err) {
+        console.error('Error al eliminar servicio:', err);
+        alert('Error de conexión al intentar eliminar el servicio.');
+      })
+      .finally(function() {
+        modalEliminarServicio.style.display = 'none';
+        servicioIdAEliminar = null;
+        btnConfirmarModalServicio.textContent = textoOriginal;
+        btnConfirmarModalServicio.disabled = false;
+      });
+    });
+  }
+
+  if (grid) {
+    grid.addEventListener('click', function(evento) {
+      var botonEstado = evento.target.closest('[data-cambiar-estado]');
+      if (botonEstado) {
+        var id = botonEstado.dataset.cambiarEstado;
+        var nuevoEstado = botonEstado.dataset.estadoActual === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
+        botonEstado.disabled = true;
+        window.BEC.api(window.BEC.url(window.BEC.cfg.api.servicio, id), {
+          method: 'PATCH',
+          body: { estado: nuevoEstado }
+        }).then(function(respuesta) {
+          if (respuesta.ok) {
+            cargarServiciosProveedor();
+          } else {
+            botonEstado.disabled = false;
+            alert(respuesta.status === 403 ? 'No tienes permiso para cambiar este servicio.' : 'No se pudo cambiar el estado del servicio.');
+          }
+        }).catch(function() {
+          botonEstado.disabled = false;
+          alert('Error de conexión al cambiar el estado del servicio.');
+        });
+        return;
+      }
+
+      var botonEliminar = evento.target.closest('[data-eliminar-servicio]');
+      if (botonEliminar) {
+        window.eliminarServicio(botonEliminar.dataset.eliminarServicio, botonEliminar.dataset.nombreServicio);
+      }
+    });
+  }
+
+  // Cargar Categorías preservando la opción por defecto
+  function cargarCategorias() {
+    window.BEC.api(window.BEC.cfg.api.categorias, { method: 'GET' })
+      .then(function(res) {
+        const cats = res.ok ? window.BEC.lista(res.data) : [];
+        let opcionesHTML = '<option value="">-- Selecciona una categoría --</option>';
+        
+        if (cats.length > 0) {
+          opcionesHTML += cats.map(c => `<option value="${c.id}">${escaparHtml(c.nombre)}</option>`).join('');
+        } else {
+          opcionesHTML += `<option value="1">Peluquería</option><option value="2">Masajes no Médicos</option>`;
+        }
+        selectCat.innerHTML = opcionesHTML;
+      })
       .catch(function() {
-        selectCat.innerHTML = `<option value="1">Peluquería</option>`;
+        selectCat.innerHTML = `<option value="">-- Selecciona una categoría --</option><option value="1">Peluquería</option>`;
       });
   }
 
   if (btnAbrir) {
     btnAbrir.addEventListener('click', function() {
-      if (modal) modal.style.display = 'flex';
+      if (form) form.reset();
       if (msjBox) msjBox.innerHTML = '';
+      if (modal) modal.style.display = 'flex';
       cargarCategorias();
     });
   }
@@ -164,11 +276,18 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function cargarServiciosProveedor() {
-    fetch('/api/catalogo/servicios/mios/')
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        const lista = Array.isArray(data) ? data : (data.results || []);
-        
+    window.BEC.api(window.BEC.cfg.api.misServicios, { method: 'GET' })
+      .then(function(res) {
+        if (!res.ok) {
+          grid.innerHTML = `
+            <div style="background-color: #ffffff; border-radius: 1.25rem; border: 1px solid #e2e8f0; padding: 3rem; text-align: center; color: #64748b; grid-column: 1 / -1;">
+              ${res.status === 403 ? 'Solo las cuentas de tipo Proveedor pueden ver este catálogo.' : 'No pudimos cargar tus servicios.'}
+            </div>`;
+          return;
+        }
+
+        const lista = window.BEC.lista(res.data);
+
         if (lista.length === 0) {
           grid.innerHTML = `
             <div style="background-color: #ffffff; border-radius: 1.25rem; border: 1px solid #e2e8f0; padding: 3rem; text-align: center; color: #64748b; grid-column: 1 / -1;">
@@ -181,13 +300,19 @@ document.addEventListener('DOMContentLoaded', function() {
           const precio = window.BEC && window.BEC.dinero ? window.BEC.dinero(s.precio) : ('$' + Number(s.precio || 0).toLocaleString('es-CO'));
           const duracion = s.duracion_minutos || s.duracion || 60;
           const categoria = (s.categoria && typeof s.categoria === 'object') ? (s.categoria.nombre || 'VARIOS') : (s.categoria_nombre || 'VARIOS');
+          
+          const esActivo = (s.estado === true || String(s.estado).toLowerCase() === 'activo');
+          const textoEstado = esActivo ? 'Activo' : 'Inactivo';
+          const bgColor = esActivo ? '#f0fdf4' : '#fef2f2';
+          const textColor = esActivo ? '#166534' : '#991b1b';
+          const borderColor = esActivo ? '#bbf7d0' : '#fecaca';
 
           return `
             <div id="card-servicio-${s.id}" style="background-color: #ffffff; border-radius: 1.25rem; border: 1px solid #e2e8f0; padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
               <div>
-                <span style="background-color: #ccfbf1; color: #0f766e; font-size: 0.75rem; font-weight: 800; padding: 0.2rem 0.6rem; border-radius: 9999px; text-transform: uppercase;">${categoria}</span>
-                <h3 style="font-size: 1.2rem; font-weight: 800; color: #0f172a; margin: 0.75rem 0 0.35rem 0;">${s.nombre}</h3>
-                <p style="color: #64748b; font-size: 0.85rem; margin: 0 0 1.25rem 0; line-height: 1.4;">${s.descripcion || 'Sin descripción.'}</p>
+                <span style="background-color: #ccfbf1; color: #0f766e; font-size: 0.75rem; font-weight: 800; padding: 0.2rem 0.6rem; border-radius: 9999px; text-transform: uppercase;">${escaparHtml(categoria)}</span>
+                <h3 style="font-size: 1.2rem; font-weight: 800; color: #0f172a; margin: 0.75rem 0 0.35rem 0;">${escaparHtml(s.nombre)}</h3>
+                <p style="color: #64748b; font-size: 0.85rem; margin: 0 0 1.25rem 0; line-height: 1.4;">${escaparHtml(s.descripcion || 'Sin descripción.')}</p>
               </div>
 
               <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 1rem;">
@@ -195,14 +320,15 @@ document.addEventListener('DOMContentLoaded', function() {
                   <div style="font-size: 1.25rem; font-weight: 800; color: #0f172a;">${precio}</div>
                   <span style="font-size: 0.75rem; color: #94a3b8;">${duracion} min</span>
                 </div>
-                
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                  <span style="background-color: #f0fdf4; color: #166534; font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 0.5rem; border: 1px solid #bbf7d0;">
-                    Activo
+
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end;">
+                  <span style="background-color: ${bgColor}; color: ${textColor}; font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 0.5rem; border: 1px solid ${borderColor};">
+                      ${textoEstado}
                   </span>
-                  
-                  <!-- BOTÓN ELIMINAR SERVICIO -->
-                  <button type="button" onclick="eliminarServicio(${s.id}, '${s.nombre || 'este servicio'}')" style="background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s ease;">
+
+                  <a href="/mis-servicios/${s.id}/editar/" style="background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 0.5rem; text-decoration: none;">Editar</a>
+                  <button type="button" data-cambiar-estado="${s.id}" data-estado-actual="${esActivo ? 'ACTIVO' : 'INACTIVO'}" style="background-color: #f8fafc; color: #334155; border: 1px solid #cbd5e1; font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 0.5rem; cursor: pointer;">${esActivo ? 'Desactivar' : 'Activar'}</button>
+                  <button type="button" data-eliminar-servicio="${s.id}" data-nombre-servicio="${escaparHtml(s.nombre || 'este servicio')}" style="background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s ease;">
                     Eliminar
                   </button>
                 </div>
@@ -216,7 +342,6 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   }
 
-  // Enviar Formulario al Backend
   if (form) {
     form.addEventListener('submit', function(e) {
       e.preventDefault();
@@ -225,14 +350,13 @@ document.addEventListener('DOMContentLoaded', function() {
       const categoriaVal = document.getElementById('selectCategoriaServicio').value;
       const precioVal = document.getElementById('inputPrecioServicio').value;
       const duracionVal = document.getElementById('inputDuracionServicio').value;
-      
+      const estadoVal = document.getElementById('selectEstadoServicio').value;
+
       const descElem = document.getElementById('inputDescServicio');
       const descripcionVal = descElem ? descElem.value.trim() : "";
 
-      if (!nombreVal || !categoriaVal || !precioVal || !duracionVal) {
-        if (msjBox) {
-          msjBox.innerHTML = '<div style="color: #ef4444; font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem;">Completa los campos obligatorios (*).</div>';
-        }
+      if (!nombreVal || !categoriaVal || !precioVal || !duracionVal || !estadoVal) {
+        mostrarErrorModal('Completa los campos obligatorios (*).');
         return;
       }
 
@@ -241,23 +365,13 @@ document.addEventListener('DOMContentLoaded', function() {
         categoria: parseInt(categoriaVal),
         precio: parseFloat(precioVal),
         duracion_minutos: parseInt(duracionVal),
-        descripcion: descripcionVal
+        descripcion: descripcionVal,
+        estado: estadoVal
       };
 
-      var csrfToken = '';
-      var csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
-      if (csrfInput) {
-        csrfToken = csrfInput.value;
-      }
-
-      fetch('/api/catalogo/servicios/', {
+      window.BEC.api(window.BEC.cfg.api.servicios, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken
-        },
-        credentials: 'same-origin',
-        body: JSON.stringify(payload)
+        body: payload
       })
       .then(function(res) {
         if (res.ok || res.status === 201) {
@@ -265,20 +379,16 @@ document.addEventListener('DOMContentLoaded', function() {
           if (msjBox) msjBox.innerHTML = '';
           if (modal) modal.style.display = 'none';
           cargarServiciosProveedor();
+        } else if (res.status === 403) {
+          mostrarErrorModal('Solo las cuentas de tipo Proveedor pueden crear servicios.');
         } else {
-          return res.json().then(function(data) {
-            if (msjBox) {
-              var textoErr = typeof data === 'object' ? JSON.stringify(data) : 'Error al guardar.';
-              msjBox.innerHTML = '<div style="color: #ef4444; font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem;">' + textoErr + '</div>';
-            }
-          });
+          var textoErr = (res.data && typeof res.data === 'object') ? JSON.stringify(res.data) : 'Error al guardar.';
+          mostrarErrorModal(textoErr);
         }
       })
       .catch(function(err) {
         console.error("Error al guardar servicio:", err);
-        if (msjBox) {
-          msjBox.innerHTML = '<div style="color: #ef4444; font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem;">Error de conexión con el servidor.</div>';
-        }
+        mostrarErrorModal('Error de conexión con el servidor.');
       });
     });
   }

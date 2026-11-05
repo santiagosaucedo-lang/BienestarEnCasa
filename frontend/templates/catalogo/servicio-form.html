@@ -1,0 +1,463 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestionar servicio - BienestarEnCasa{% endblock %}
+
+{% block header_nav %}
+    {% include 'nav_proveedor.html' %}
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .gestion-servicio {
+    min-height: calc(100vh - 72px);
+    background: #f8fafc;
+    padding: 2.5rem 1rem;
+    color: #0f172a;
+  }
+  .gestion-servicio-contenedor {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .gestion-servicio-tarjeta {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .04);
+  }
+  .gestion-servicio h1 {
+    margin: 0 0 .5rem;
+    font-size: 2rem;
+  }
+  .gestion-servicio h2 {
+    margin: 0 0 1rem;
+    font-size: 1.25rem;
+  }
+  .gestion-servicio p {
+    color: #64748b;
+  }
+  .gestion-servicio label {
+    display: block;
+    margin: .8rem 0 .35rem;
+    font-weight: 650;
+    color: #334155;
+  }
+  .gestion-servicio input, .gestion-servicio select, .gestion-servicio textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: .72rem .85rem;
+    background: #fff; color: #0f172a;
+    font: inherit;
+  }
+  .gestion-servicio textarea {
+    resize: vertical;
+  }
+  .gestion-servicio .rejilla-campos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: .5rem 1rem;
+  }
+  .gestion-servicio .acciones {
+    display: flex;
+    gap: .75rem;
+    flex-wrap: wrap;
+    margin-top: 1.25rem;
+  }
+  .gestion-servicio .boton {
+    display: inline-block;
+    border: 0;
+    border-radius: 10px;
+    padding: .75rem 1rem;
+    background: #0d9488;
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    margin-bottom: 1rem;
+  }
+  .gestion-servicio .boton-secundario {
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+  .gestion-servicio .boton-peligro {
+    background: #fef2f2;
+    color: #b91c1c;
+  }
+  .gestion-servicio .lista-contenido {
+    display: grid;
+    gap: .65rem;
+    padding: 0;
+    list-style: none;
+    text-decoration: none;
+  }
+  .gestion-servicio .elemento-contenido {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: .75rem;
+  }
+  .gestion-servicio .contenido-texto {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .gestion-servicio .mensaje {
+    border-radius: 10px;
+    padding: .8rem 1rem;
+    margin: 1rem 0;
+  }
+  .gestion-servicio .mensaje-error {
+    background: #fef2f2;
+    color: #b91c1c;
+  }
+  .gestion-servicio .mensaje-ok {
+    background: #f0fdf4;
+    color: #166534;
+  }
+  input[type="file"]::file-selector-button {
+    background: #0d9488;
+    color: white;
+    font-weight: 700;
+    font-size: .75rem;
+    padding: .75rem 1rem;
+    border: 0;
+    border-radius: 10px;
+    cursor: pointer;
+}
+  [hidden] { display: none !important; }
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="gestion-servicio">
+  <div class="gestion-servicio-contenedor">
+    <a href="{% url 'pagina-mis-servicios' %}" class="boton boton-secundario">← Volver a Mis Servicios</a>
+    <header style="margin: 1.25rem 0 1.5rem;">
+      <h1 id="tituloGestionServicio">Nuevo servicio</h1>
+      <p>Actualiza la información, el estado y el contenido asociado a este servicio.</p>
+    </header>
+
+    <div id="mensajeGestionServicio" aria-live="polite"></div>
+    <section id="seccionFormularioServicio" class="gestion-servicio-tarjeta" hidden>
+      <h2>Información del servicio</h2>
+      <form id="formGestionServicio" novalidate>
+        {% csrf_token %}
+        <label for="nombreServicio">Nombre *</label>
+        <input id="nombreServicio" name="nombre" required maxlength="150">
+
+        <div class="rejilla-campos">
+          <div>
+            <label for="categoriaServicio">Categoría *</label>
+            <select id="categoriaServicio" name="categoria" required><option value="">Cargando categorías...</option></select>
+          </div>
+          <div>
+            <label for="estadoServicio">Estado *</label>
+            <select id="estadoServicio" name="estado">
+              <option value="ACTIVO">Activo</option>
+              <option value="INACTIVO">Inactivo</option>
+            </select>
+          </div>
+          <div>
+            <label for="precioServicio">Precio (COP) *</label>
+            <input id="precioServicio" name="precio" type="number" min="1" step="1" required>
+          </div>
+          <div>
+            <label for="duracionServicio">Duración (minutos) *</label>
+            <input id="duracionServicio" name="duracion_minutos" type="number" min="1" step="1" required>
+          </div>
+        </div>
+
+        <label for="descripcionServicio">Descripción</label>
+        <textarea id="descripcionServicio" name="descripcion" rows="4"></textarea>
+        <div class="acciones">
+          <button class="boton" id="guardarServicio" type="submit">Guardar servicio</button>
+          <a class="boton boton-secundario" id="verDetalleServicio" href="#" hidden>Previsualizar</a>
+        </div>
+      </form>
+    </section>
+
+    <section id="seccionContenidoServicio" hidden>
+      <section class="gestion-servicio-tarjeta">
+        <h2>Fotografías y videos</h2>
+        <p>Agrega archivos de referencia para que los clientes los consulten en el detalle del servicio.</p>
+        <form id="formMultimediaServicio" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="rejilla-campos">
+            <div>
+              <label for="tipoMultimedia">Tipo de archivo</label>
+              <select id="tipoMultimedia" name="tipo"><option value="FOTO">Fotografía</option><option value="VIDEO">Video</option></select>
+            </div>
+            <div>
+              <label for="archivoMultimedia">Archivo</label>
+              <input id="archivoMultimedia" name="archivo" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" required>
+            </div>
+          </div>
+          <label for="descripcionMultimedia">Descripción (opcional)</label>
+          <input id="descripcionMultimedia" name="descripcion" maxlength="255">
+          <div class="acciones"><button class="boton" type="submit">Agregar archivo</button></div>
+        </form>
+        <ul id="listaMultimediaServicio" class="lista-contenido" aria-live="polite"></ul>
+      </section>
+
+      <section class="gestion-servicio-tarjeta">
+        <h2>Productos, insumos y equipos</h2>
+        <form id="formElementoServicio">
+          {% csrf_token %}
+          <div class="rejilla-campos">
+            <div>
+              <label for="tipoElemento">Tipo</label>
+              <select id="tipoElemento" name="tipo"><option value="PRODUCTO">Producto</option><option value="INSUMO">Insumo</option><option value="EQUIPO">Equipo</option></select>
+            </div>
+            <div>
+              <label for="nombreElemento">Nombre</label>
+              <input id="nombreElemento" name="nombre" maxlength="100" required>
+            </div>
+          </div>
+          <label for="especificacionesElemento">Descripción o especificaciones (opcional)</label>
+          <textarea id="especificacionesElemento" name="especificaciones" rows="3"></textarea>
+          <div class="acciones"><button class="boton" type="submit">Agregar elemento</button></div>
+        </form>
+        <ul id="listaElementosServicio" class="lista-contenido" aria-live="polite"></ul>
+      </section>
+    </section>
+  </div>
+</main>
+{% endblock %}
+
+{% block extra_body %}
+<script>
+(function () {
+  var api = window.BEC;
+  var coincidencia = window.location.pathname.match(/\/mis-servicios\/(\d+)\/editar\/?$/);
+  var servicioId = coincidencia ? Number(coincidencia[1]) : null;
+  var mensaje = document.getElementById('mensajeGestionServicio');
+  var seccionFormulario = document.getElementById('seccionFormularioServicio');
+  var seccionContenido = document.getElementById('seccionContenidoServicio');
+  var formulario = document.getElementById('formGestionServicio');
+  var formularioMultimedia = document.getElementById('formMultimediaServicio');
+  var formularioElemento = document.getElementById('formElementoServicio');
+
+  function mostrarMensaje(texto, error) {
+    mensaje.className = 'mensaje ' + (error ? 'mensaje-error' : 'mensaje-ok');
+    mensaje.textContent = texto;
+  }
+
+  function errorApi(respuesta) {
+    var datos = respuesta && respuesta.data;
+    if (datos && typeof datos === 'object') {
+      var mensajes = [];
+      Object.keys(datos).forEach(function (campo) {
+        var detalle = datos[campo];
+        mensajes.push(campo + ': ' + (Array.isArray(detalle) ? detalle.join(' ') : String(detalle)));
+      });
+      if (mensajes.length) return mensajes.join(' ');
+    }
+    return 'No se pudo completar la operación. Inténtalo de nuevo.';
+  }
+
+  function agregarFila(lista, etiqueta, texto, url, id, tipo) {
+    var li = document.createElement('li');
+    li.className = 'elemento-contenido';
+    var contenido = document.createElement('div');
+    contenido.className = 'contenido-texto';
+    var titulo = document.createElement('strong');
+    titulo.textContent = etiqueta;
+    var detalle = document.createElement('div');
+    detalle.textContent = texto || '';
+    contenido.appendChild(titulo);
+    contenido.appendChild(detalle);
+    if (url) {
+      var enlace = document.createElement('a');
+      enlace.href = url;
+      enlace.target = '_blank';
+      enlace.rel = 'noopener noreferrer';
+      enlace.textContent = 'Abrir archivo';
+      contenido.appendChild(enlace);
+    }
+    var borrar = document.createElement('button');
+    borrar.type = 'button';
+    borrar.className = 'boton boton-peligro';
+    borrar.textContent = 'Eliminar';
+    borrar.dataset.eliminarId = String(id);
+    borrar.dataset.eliminarTipo = tipo;
+    li.appendChild(contenido);
+    li.appendChild(borrar);
+    lista.appendChild(li);
+  }
+
+  function cargarContenido() {
+    if (!servicioId) return;
+    var listaMedia = document.getElementById('listaMultimediaServicio');
+    var listaElementos = document.getElementById('listaElementosServicio');
+    Promise.all([
+      api.api(api.cfg.api.multimedia + '?servicio=' + servicioId),
+      api.api(api.cfg.api.elementos + '?servicio=' + servicioId)
+    ]).then(function (respuestas) {
+      listaMedia.replaceChildren();
+      listaElementos.replaceChildren();
+      if (respuestas[0].ok) {
+        api.lista(respuestas[0].data).forEach(function (media) {
+          agregarFila(listaMedia, media.tipo === 'VIDEO' ? 'Video' : 'Fotografía', media.descripcion, media.archivo, media.id, 'multimedia');
+        });
+      }
+      if (respuestas[1].ok) {
+        api.lista(respuestas[1].data).forEach(function (elemento) {
+          agregarFila(listaElementos, elemento.tipo, elemento.nombre + (elemento.especificaciones ? ' — ' + elemento.especificaciones : ''), null, elemento.id, 'elemento');
+        });
+      }
+    }).catch(function () {
+      mostrarMensaje('No se pudo cargar la información complementaria del servicio.', true);
+    });
+  }
+
+  function cargarCategorias(categoriaSeleccionada) {
+    return api.api(api.cfg.api.categorias).then(function (respuesta) {
+      var select = document.getElementById('categoriaServicio');
+      select.replaceChildren();
+      api.lista(respuesta.data).forEach(function (categoria) {
+        var opcion = document.createElement('option');
+        opcion.value = categoria.id;
+        opcion.textContent = categoria.nombre;
+        select.appendChild(opcion);
+      });
+      if (!respuesta.ok || !select.options.length) {
+        mostrarMensaje('No hay categorías disponibles para el servicio.', true);
+        return false;
+      }
+      if (categoriaSeleccionada) select.value = String(categoriaSeleccionada);
+      return true;
+    });
+  }
+
+  api.requiereSesion(['PROVEEDOR']).then(function (perfil) {
+    if (!perfil) {
+      mostrarMensaje('Inicia sesión con una cuenta de proveedor para gestionar servicios.', true);
+      return;
+    }
+
+    var formularioId = document.getElementById('formGestionServicio');
+    var cargarFormulario = servicioId
+      ? api.api(api.url(api.cfg.api.servicio, servicioId))
+      : Promise.resolve({ ok: true, data: null });
+
+    cargarFormulario.then(function (respuesta) {
+      if (servicioId && !respuesta.ok) {
+        mostrarMensaje(respuesta.status === 404 ? 'No encontramos el servicio en tu catálogo.' : errorApi(respuesta), true);
+        return;
+      }
+      var servicio = respuesta.data;
+      cargarCategorias(servicio && servicio.categoria).then(function (categoriasOk) {
+        if (!categoriasOk) return;
+        seccionFormulario.hidden = false;
+        if (!servicio) {
+          document.getElementById('tituloGestionServicio').textContent = 'Nuevo servicio';
+          return;
+        }
+        document.getElementById('tituloGestionServicio').textContent = 'Editar servicio';
+        formulario.nombre.value = servicio.nombre || '';
+        formulario.categoria.value = servicio.categoria;
+        formulario.estado.value = String(servicio.estado || 'ACTIVO').toUpperCase();
+        formulario.precio.value = servicio.precio || '';
+        formulario.duracion_minutos.value = servicio.duracion_minutos || '';
+        formulario.descripcion.value = servicio.descripcion || '';
+        var enlaceDetalle = document.getElementById('verDetalleServicio');
+        enlaceDetalle.href = api.url(api.cfg.pages.servicio, servicioId);
+        enlaceDetalle.hidden = false;
+        seccionContenido.hidden = false;
+        cargarContenido();
+      });
+    });
+
+    formularioId.addEventListener('submit', function (evento) {
+      evento.preventDefault();
+      var datos = {
+        nombre: formularioId.nombre.value.trim(),
+        categoria: Number(formularioId.categoria.value),
+        precio: formularioId.precio.value,
+        duracion_minutos: Number(formularioId.duracion_minutos.value),
+        descripcion: formularioId.descripcion.value.trim(),
+        estado: formularioId.estado.value
+      };
+      var boton = document.getElementById('guardarServicio');
+      boton.disabled = true;
+      var url = servicioId ? api.url(api.cfg.api.servicio, servicioId) : api.cfg.api.servicios;
+      api.api(url, { method: servicioId ? 'PATCH' : 'POST', body: datos }).then(function (respuesta) {
+        boton.disabled = false;
+        if (!respuesta.ok) {
+          mostrarMensaje(errorApi(respuesta), true);
+          return;
+        }
+        if (!servicioId && respuesta.data && respuesta.data.id) {
+          window.location.href = api.url(api.cfg.pages.servicioEditar, respuesta.data.id);
+          return;
+        }
+        mostrarMensaje('Los cambios del servicio se guardaron correctamente.', false);
+      }).catch(function () {
+        boton.disabled = false;
+        mostrarMensaje('Error de conexión al guardar el servicio.', true);
+      });
+    });
+
+    formularioMultimedia.addEventListener('submit', function (evento) {
+      evento.preventDefault();
+      if (!servicioId) return;
+      var archivo = document.getElementById('archivoMultimedia').files[0];
+      if (!archivo) return;
+      var datos = new FormData();
+      datos.append('servicio', String(servicioId));
+      datos.append('tipo', document.getElementById('tipoMultimedia').value);
+      datos.append('archivo', archivo);
+      datos.append('descripcion', document.getElementById('descripcionMultimedia').value.trim());
+      api.api(api.cfg.api.multimedia, { method: 'POST', body: datos }).then(function (respuesta) {
+        if (!respuesta.ok) {
+          mostrarMensaje(errorApi(respuesta), true);
+          return;
+        }
+        formularioMultimedia.reset();
+        mostrarMensaje('El archivo se asoció al servicio.', false);
+        cargarContenido();
+      }).catch(function () { mostrarMensaje('No se pudo cargar el archivo.', true); });
+    });
+
+    formularioElemento.addEventListener('submit', function (evento) {
+      evento.preventDefault();
+      if (!servicioId) return;
+      var datos = {
+        servicio: servicioId,
+        tipo: formularioElemento.tipo.value,
+        nombre: formularioElemento.nombre.value.trim(),
+        especificaciones: formularioElemento.especificaciones.value.trim()
+      };
+      api.api(api.cfg.api.elementos, { method: 'POST', body: datos }).then(function (respuesta) {
+        if (!respuesta.ok) {
+          mostrarMensaje(errorApi(respuesta), true);
+          return;
+        }
+        formularioElemento.reset();
+        mostrarMensaje('El elemento se asoció al servicio.', false);
+        cargarContenido();
+      }).catch(function () { mostrarMensaje('No se pudo guardar el elemento.', true); });
+    });
+
+    document.getElementById('seccionContenidoServicio').addEventListener('click', function (evento) {
+      var boton = evento.target.closest('[data-eliminar-id]');
+      if (!boton) return;
+      var endpoint = boton.dataset.eliminarTipo === 'multimedia' ? api.cfg.api.multimediaItem : api.cfg.api.elemento;
+      api.api(api.url(endpoint, boton.dataset.eliminarId), { method: 'DELETE' }).then(function (respuesta) {
+        if (!respuesta.ok && respuesta.status !== 204) {
+          mostrarMensaje(errorApi(respuesta), true);
+          return;
+        }
+        mostrarMensaje('El contenido se eliminó del servicio.', false);
+        cargarContenido();
+      }).catch(function () { mostrarMensaje('No se pudo eliminar el contenido.', true); });
+    });
+  });
+})();
+</script>
+{% endblock %}

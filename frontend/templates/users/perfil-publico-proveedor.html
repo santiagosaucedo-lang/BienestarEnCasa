@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Perfil del proveedor - BienestarEnCasa{% endblock %}
+
+{% block extra_head %}
+<style>
+  .perfil-publico {
+    min-height: calc(100vh - 72px);
+    background: #f8fafc;
+    padding: 2.5rem 1rem;
+    color: #0f172a;
+  }
+  .perfil-contenedor { max-width: 1100px; margin: 0 auto; }
+  .perfil-volver {
+    display: inline-block; margin-bottom: 1.25rem; color: #2563eb;
+    font-weight: 700; text-decoration: none;
+  }
+  .perfil-cabecera, .seccion-perfil, .tarjeta-servicio {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 18px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .04);
+  }
+  .perfil-cabecera {
+    padding: 2rem; display: flex; align-items: center; gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .perfil-avatar {
+    width: 76px; height: 76px; flex: 0 0 76px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: #dbeafe; color: #1d4ed8; font-size: 1.8rem; font-weight: 800;
+  }
+  .perfil-cabecera h1 { margin: 0 0 .35rem; font-size: 1.8rem; }
+  .perfil-etiqueta { color: #64748b; margin: 0; }
+  .seccion-perfil { padding: 1.5rem; margin-bottom: 1.5rem; }
+  .seccion-perfil h2 { margin: 0 0 1rem; font-size: 1.25rem; }
+  .perfil-descripcion { color: #475569; line-height: 1.7; white-space: pre-line; }
+  .zonas-lista { display: flex; flex-wrap: wrap; gap: .65rem; }
+  .zona-item {
+    background: #eff6ff; color: #1e40af; border-radius: 999px;
+    padding: .55rem .9rem; font-size: .9rem; font-weight: 600;
+  }
+  .servicios-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+  .tarjeta-servicio { padding: 1.25rem; }
+  .tarjeta-servicio h3 { margin: 0 0 .5rem; font-size: 1.1rem; }
+  .categoria-servicio { color: #0d9488; font-size: .85rem; font-weight: 700; }
+  .descripcion-servicio { color: #64748b; line-height: 1.5; }
+  .datos-servicio {
+    display: flex; flex-wrap: wrap; gap: .8rem; margin-top: 1rem;
+    color: #334155; font-size: .9rem;
+  }
+  .precio-servicio { color: #0f766e; font-size: 1.15rem; font-weight: 800; }
+  .elementos-servicio { margin-top: 1rem; padding-top: .8rem; border-top: 1px solid #e2e8f0; }
+  .elementos-servicio ul { padding-left: 1.2rem; color: #475569; }
+  .multimedia-servicio { margin-top: .8rem; }
+  .multimedia-servicio a { color: #2563eb; overflow-wrap: anywhere; }
+  .mensaje-estado {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+    padding: 1.5rem; color: #64748b; text-align: center;
+  }
+  @media (max-width: 600px) {
+    .perfil-cabecera { padding: 1.25rem; align-items: flex-start; }
+    .perfil-avatar { width: 58px; height: 58px; flex-basis: 58px; font-size: 1.4rem; }
+    .perfil-cabecera h1 { font-size: 1.35rem; }
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="perfil-publico">
+  <div class="perfil-contenedor">
+    <a class="perfil-volver" href="{% url 'pagina-inicio' %}">← Volver al inicio</a>
+
+    <div id="estadoPerfil" class="mensaje-estado">Cargando perfil del proveedor...</div>
+
+    <div id="contenidoPerfil" style="display:none;">
+      <section class="perfil-cabecera">
+        <div class="perfil-avatar" id="avatarProveedor">P</div>
+        <div>
+          <p class="perfil-etiqueta">PROVEEDOR DE BIENESTAREN CASA</p>
+          <h1 id="nombreProveedor"></h1>
+          <p class="perfil-etiqueta">Perfil profesional</p>
+        </div>
+      </section>
+
+      <section class="seccion-perfil">
+        <h2>Acerca del profesional</h2>
+        <p class="perfil-descripcion" id="descripcionProveedor"></p>
+      </section>
+
+      <section class="seccion-perfil">
+        <h2>Zonas de atención</h2>
+        <p class="perfil-etiqueta">Estas zonas son orientativas; no representan un cálculo de distancia ni una validación automática de cobertura.</p>
+        <div class="zonas-lista" id="zonasProveedor"></div>
+      </section>
+
+      <section class="seccion-perfil">
+        <h2>Servicios ofrecidos</h2>
+        <div class="servicios-grid" id="serviciosProveedor"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const estado = document.getElementById('estadoPerfil');
+  const contenido = document.getElementById('contenidoPerfil');
+
+  function crearElemento(etiqueta, texto, clase) {
+    const elemento = document.createElement(etiqueta);
+    if (clase) elemento.className = clase;
+    elemento.textContent = texto;
+    return elemento;
+  }
+
+  function mostrarServicio(servicio) {
+    const tarjeta = document.createElement('article');
+    tarjeta.className = 'tarjeta-servicio';
+
+    tarjeta.appendChild(crearElemento('h3', servicio.nombre || 'Servicio'));
+
+    const categoria = servicio.categoria_detalle;
+    if (categoria && categoria.nombre) {
+      tarjeta.appendChild(crearElemento('p', categoria.nombre, 'categoria-servicio'));
+    }
+
+    if (servicio.descripcion) {
+      tarjeta.appendChild(crearElemento('p', servicio.descripcion, 'descripcion-servicio'));
+    }
+
+    const datos = document.createElement('div');
+    datos.className = 'datos-servicio';
+
+    const precio = document.createElement('span');
+    precio.className = 'precio-servicio';
+    precio.textContent = '$' + Number(servicio.precio || 0).toLocaleString('es-CO');
+    datos.appendChild(precio);
+
+    if (servicio.duracion_minutos) {
+      datos.appendChild(crearElemento('span', servicio.duracion_minutos + ' minutos'));
+    }
+    tarjeta.appendChild(datos);
+
+    if (Array.isArray(servicio.elementos) && servicio.elementos.length) {
+      const bloque = document.createElement('div');
+      bloque.className = 'elementos-servicio';
+      bloque.appendChild(crearElemento('strong', '¿Qué incluye?'));
+      const lista = document.createElement('ul');
+      servicio.elementos.forEach(function (elemento) {
+        const detalle = [elemento.nombre, elemento.especificaciones].filter(Boolean).join(': ');
+        lista.appendChild(crearElemento('li', detalle || elemento.tipo || 'Elemento del servicio'));
+      });
+      bloque.appendChild(lista);
+      tarjeta.appendChild(bloque);
+    }
+
+    return tarjeta;
+  }
+
+  async function cargarPerfil() {
+    const coincidencia = window.location.pathname.match(/\/proveedor\/(\d+)\/?$/);
+
+    if (!coincidencia) {
+      estado.textContent = 'No se pudo identificar el proveedor solicitado.';
+      return;
+    }
+
+    const idProveedor = coincidencia[1];
+
+    try {
+      // Se usa fetch directamente para que una visita pública no sea redirigida al login.
+      const respuesta = await fetch('/api/proveedores/' + idProveedor + '/', {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        credentials: 'same-origin'
+      });
+
+      if (respuesta.status === 404) {
+        estado.textContent = 'No encontramos el perfil de este proveedor.';
+        return;
+      }
+
+      if (!respuesta.ok) {
+        estado.textContent = 'No fue posible cargar el perfil. Intenta nuevamente más tarde.';
+        return;
+      }
+
+      const proveedor = await respuesta.json();
+      const nombre = [proveedor.nombres, proveedor.apellidos].filter(Boolean).join(' ').trim();
+
+      document.getElementById('nombreProveedor').textContent = nombre || 'Proveedor';
+      document.getElementById('avatarProveedor').textContent =
+        (nombre || 'P').charAt(0).toUpperCase();
+
+      document.getElementById('descripcionProveedor').textContent =
+        proveedor.descripcion_profesional || 'Este profesional aún no ha agregado una descripción.';
+
+      const zonas = document.getElementById('zonasProveedor');
+      if (Array.isArray(proveedor.zonas_atencion) && proveedor.zonas_atencion.length) {
+          proveedor.zonas_atencion.forEach(function (zona) {
+              const texto = [zona.barrio_sector, zona.ciudad]
+                  .filter(Boolean)
+                  .map(valor =>
+                      valor
+                          .replace(/_/g, ' ')
+                          .replace(/\b\w/g, letra => letra.toUpperCase())
+                  )
+                  .join(', ');
+
+              zonas.appendChild(
+                  crearElemento('span', texto || 'Zona de atención', 'zona-item')
+              );
+          });
+      } else {
+        zonas.appendChild(crearElemento('p', 'El proveedor aún no ha registrado zonas de atención.'));
+      }
+
+      const servicios = document.getElementById('serviciosProveedor');
+      const listaServicios = Array.isArray(proveedor.servicios)
+        ? proveedor.servicios.filter(function (servicio) {
+            return !servicio.estado || servicio.estado.toLowerCase() === 'activo';
+          })
+        : [];
+
+      if (listaServicios.length) {
+        listaServicios.forEach(function (servicio) {
+          servicios.appendChild(mostrarServicio(servicio));
+        });
+      } else {
+        servicios.appendChild(crearElemento('p', 'Este proveedor aún no tiene servicios activos publicados.'));
+      }
+
+      estado.style.display = 'none';
+      contenido.style.display = 'block';
+    } catch (error) {
+      console.error('Error al cargar el perfil público:', error);
+      estado.textContent = 'Ocurrió un error de conexión al cargar el perfil.';
+    }
+  }
+
+  cargarPerfil();
+});
+</script>
+{% endblock %}

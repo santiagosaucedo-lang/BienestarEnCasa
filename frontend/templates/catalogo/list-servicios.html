@@ -37,7 +37,7 @@
 
     /* Buscador */
     .filter-bar {
-        margin-bottom: 32px;
+        margin-bottom: 20px;
         width: 100%;
     }
 
@@ -57,6 +57,88 @@
     .search-input:focus {
         border-color: #1A68FF;
         box-shadow: 0 0 0 3px rgba(26, 104, 255, 0.15);
+    }
+
+    /* Sección de Búsqueda de Proveedores */
+    .providers-section {
+        margin-bottom: 32px;
+        background: #F8FAFC;
+        padding: 20px;
+        border-radius: 16px;
+        border: 1px solid #E2E8F0;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1E293B;
+        margin-bottom: 16px;
+    }
+
+    .providers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+    }
+
+    .provider-card {
+        background: #ffffff;
+        border: 1px solid #CBD5E1;
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .provider-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0F172A;
+        margin-bottom: 4px;
+    }
+
+    .provider-desc {
+        font-size: 0.85rem;
+        color: #64748B;
+        margin-bottom: 12px;
+        display: -webkit-box;
+        line-clamp: 2;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Filtro por categorías */
+    .category-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 32px;
+    }
+
+    .category-btn {
+        padding: 8px 18px;
+        border-radius: 9999px;
+        border: 1px solid #CBD5E1;
+        background-color: #ffffff;
+        color: #475569;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .category-btn:hover {
+        border-color: #93C5FD;
+        color: #1A68FF;
+    }
+
+    .category-btn.active {
+        background-color: #1A68FF;
+        border-color: #1A68FF;
+        color: #ffffff !important;
     }
 
     /* Rejilla de tarjetas de servicios */
@@ -88,18 +170,21 @@
         border-color: #93C5FD;
     }
 
-    .service-id-circle {
-        width: 2rem;
-        height: 2rem;
+    /* Etiqueta del proveedor en lugar del círculo con ID */
+    .service-provider-badge {
+        display: inline-flex;
+        align-items: center;
         background-color: #eff6ff;
         color: #2563eb;
         font-weight: 700;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+        padding: 0.25rem 0.75rem;
         border-radius: 9999px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         margin-bottom: 1rem;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .service-name {
@@ -155,6 +240,21 @@
         background-color: #0052E0;
     }
 
+    .btn-detail {
+        background-color: #F1F5F9;
+        color: #334155 !important;
+        padding: 10px 14px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .btn-detail:hover {
+        background-color: #E2E8F0;
+    }
+
     .empty-state {
         text-align: center;
         padding: 60px 20px;
@@ -174,8 +274,16 @@
     <div id="mensajes"></div>
 
     <div class="filter-bar">
-        <input type="text" id="input-buscar" class="search-input" placeholder="Buscar por nombre de servicio...">
+        <input type="text" id="input-buscar" class="search-input" placeholder="Buscar por servicio o nombre de proveedor...">
     </div>
+
+    <!-- Sección Dinámica para Búsqueda de Proveedores -->
+    <div class="providers-section" id="seccion-proveedores" hidden>
+        <h2 class="section-title">Proveedores</h2>
+        <div class="providers-grid" id="grid-proveedores"></div>
+    </div>
+
+    <div class="category-filters" id="filtro-categorias"></div>
 
     <div class="services-grid" id="grid-servicios">
         <div class="empty-state">Cargando catálogo de servicios...</div>
@@ -186,9 +294,14 @@
 document.addEventListener('DOMContentLoaded', function () {
     var grid = document.getElementById('grid-servicios');
     var inputBuscar = document.getElementById('input-buscar');
+    var contenedorFiltros = document.getElementById('filtro-categorias');
     var btnLogout = document.getElementById('btn-cerrar-sesion');
+    var seccionProveedores = document.getElementById('seccion-proveedores');
+    var gridProveedores = document.getElementById('grid-proveedores');
+
     var todosLosServicios = [];
     var mapaCategorias = {};
+    var categoriaActivaId = null;
 
     if (btnLogout && window.BEC && window.BEC.cerrarSesion) {
         btnLogout.addEventListener('click', function() {
@@ -196,11 +309,31 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function escapeHtml(texto) {
+    if (!texto) return '';
+    var div = document.createElement('div');
+    div.textContent = String(texto);
+    return div.innerHTML;
+}
+
     function formatearDinero(monto) {
         if (window.BEC && window.BEC.dinero) {
             return window.BEC.dinero(monto);
         }
         return '$' + Number(monto || 0).toLocaleString('es-CO');
+    }
+
+    function obtenerNombreProveedor(s) {
+        if (s.nombre_proveedor) return s.nombre_proveedor;
+        if (s.proveedor_nombre) return s.proveedor_nombre;
+        if (s.proveedor && typeof s.proveedor === 'object') {
+            var n = s.proveedor.nombres || s.proveedor.nombre || s.proveedor.first_name || '';
+            var a = s.proveedor.apellidos || s.proveedor.apellido || s.proveedor.last_name || '';
+            var completo = (n + ' ' + a).trim();
+            if (completo) return completo;
+            if (s.proveedor.username) return s.proveedor.username;
+        }
+        return 'Proveedor';
     }
 
     function obtenerNombreCategoria(s) {
@@ -229,6 +362,16 @@ document.addEventListener('DOMContentLoaded', function () {
         return defaults[catId] || 'Categoría general';
     }
 
+    function obtenerCategoriaId(s) {
+        if (s.categoria && typeof s.categoria === 'object') {
+            return s.categoria.id;
+        }
+        if (s.categoria_detalle && s.categoria_detalle.id != null) {
+            return s.categoria_detalle.id;
+        }
+        return s.categoria;
+    }
+
     function renderizar(servicios) {
         if (!grid) return;
         grid.innerHTML = '';
@@ -240,27 +383,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
         servicios.forEach(function (s) {
             var urlSolicitud = '/solicitar/' + s.id + '/';
+            var urlDetalleServicio = '/catalogo/' + s.id + '/';
             var catNombre = obtenerNombreCategoria(s);
+            var proveedorNombre = obtenerNombreProveedor(s);
             var duracion = s.duracion_minutos || s.duracion || 60;
 
             var cardHTML = `
                 <div class="service-card">
                     <div>
-                        <!-- NÚMERO DE ID ARRIBA -->
-                        <div class="service-id-circle">${s.id}</div>
-                        
-                        <!-- NOMBRE DEL SERVICIO -->
-                        <h3 class="service-name">${s.nombre || 'Servicio sin título'}</h3>
-                        
-                        <!-- CATEGORÍA SELECCIONADA POR EL PROVEEDOR EN TEXTO PEQUEÑO DEBAJO DEL NOMBRE -->
-                        <p class="service-category-subtext">${catNombre}</p>
+                        <div class="service-provider-badge">${escapeHtml(proveedorNombre)}</div>
+                        <h3 class="service-name">${escapeHtml(s.nombre || 'Servicio sin título')}</h3>
+                        <p class="service-category-subtext">${escapeHtml(catNombre)}</p>
                     </div>
                     <div class="service-card-footer">
                         <div>
                             <div class="service-price">${formatearDinero(s.precio)}</div>
                             <span class="service-duration">${duracion} min</span>
                         </div>
-                        <a href="${urlSolicitud}" class="btn-request">Solicitar</a>
+                        <div style="display:flex; gap:.5rem; flex-wrap:wrap; justify-content:flex-end;">
+                          <a href="${urlDetalleServicio}" class="btn-detail">Ver detalle</a>
+                          <a href="${urlSolicitud}" class="btn-request">Solicitar</a>
+                        </div>
                     </div>
                 </div>
             `;
@@ -268,41 +411,144 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    function cargarCatalogo() {
-        var urlApiServicios = '/api/catalogo/servicios/';
-        var urlApiCategorias = '/api/catalogo/categorias/';
+    function buscarProveedores(query) {
+        if (!seccionProveedores || !gridProveedores) return;
 
-        Promise.all([
-            fetch(urlApiCategorias).then(function(r) { return r.ok ? r.json() : []; }).catch(function() { return []; }),
-            fetch(urlApiServicios).then(function(r) { return r.ok ? r.json() : []; }).catch(function() { return []; })
-        ]).then(function(respuestas) {
-            var listaCats = Array.isArray(respuestas[0]) ? respuestas[0] : (respuestas[0].results || []);
-            listaCats.forEach(function(c) {
-                mapaCategorias[c.id] = c.nombre;
+        if (!query || query.length < 2) {
+            seccionProveedores.hidden = true;
+            gridProveedores.innerHTML = '';
+            return;
+        }
+
+        var urlApi = '/api/proveedores/';
+
+        fetch(urlApi + '?search=' + encodeURIComponent(query))
+            .then(function (r) {
+                if (!r.ok) return [];
+                return r.json();
+            })
+            .then(function (proveedores) {
+                gridProveedores.innerHTML = '';
+                var lista = window.BEC ? window.BEC.lista(proveedores) : proveedores;
+
+                if (!Array.isArray(lista) || lista.length === 0) {
+                    gridProveedores.innerHTML = '<div class="empty-state">No se encontraron proveedores con el nombre "' + escapeHtml(query) + '".</div>';
+                    seccionProveedores.hidden = false;
+                    return;
+                }
+
+                lista.forEach(function (p) {
+                    var nombreCompleto = escapeHtml((p.nombres || '') + ' ' + (p.apellidos || p.nombre_completo || ''));
+                    var desc = escapeHtml(p.descripcion_profesional || 'Sin descripción profesional registrada.');
+                    
+                    var urlPerfilPublico = '/proveedor/' + p.id + '/';
+
+                    var provCard = `
+                        <div class="provider-card">
+                            <div>
+                                <h3 class="provider-name">${nombreCompleto}</h3>
+                                <p class="provider-desc">${desc}</p>
+                            </div>
+                            <a href="${urlPerfilPublico}" class="btn-detail" style="text-align: center; margin-top: 10px; display: block;">Ver perfil</a>
+                        </div>
+                    `;
+                    gridProveedores.insertAdjacentHTML('beforeend', provCard);
+                });
+
+                seccionProveedores.hidden = false;
+            })
+            .catch(function () {
+                seccionProveedores.hidden = true;
             });
+    }
 
-            var dataServicios = respuestas[1];
-            todosLosServicios = Array.isArray(dataServicios) ? dataServicios : (dataServicios.results || []);
-            renderizar(todosLosServicios);
-        }).catch(function() {
-            renderizar([]);
+    function aplicarFiltros() {
+        var term = inputBuscar ? inputBuscar.value.toLowerCase().trim() : '';
+
+        buscarProveedores(term);
+
+        var filtrados = todosLosServicios.filter(function (s) {
+            var coincideTexto = true;
+            if (term) {
+                var nombre = (s.nombre || '').toLowerCase();
+                var cat = obtenerNombreCategoria(s).toLowerCase();
+                var prov = obtenerNombreProveedor(s).toLowerCase();
+                coincideTexto = nombre.includes(term) || cat.includes(term) || prov.includes(term);
+            }
+
+            var coincideCategoria = true;
+            if (categoriaActivaId !== null) {
+                coincideCategoria = Number(obtenerCategoriaId(s)) === Number(categoriaActivaId);
+            }
+
+            return coincideTexto && coincideCategoria;
+        });
+
+        renderizar(filtrados);
+    }
+
+    function renderizarFiltrosCategoria(categorias) {
+        if (!contenedorFiltros) return;
+
+        var opciones = [{ id: null, nombre: 'Todas' }].concat(
+            categorias.map(function (c) {
+                return { id: c.id, nombre: c.nombre };
+            })
+        );
+
+        contenedorFiltros.innerHTML = opciones.map(function (op) {
+            var clase = 'category-btn' + (categoriaActivaId === op.id ? ' active' : '');
+            var dataId = op.id === null ? '' : op.id;
+            return '<button type="button" class="' + clase + '" data-categoria-id="' + dataId + '">' + op.nombre + '</button>';
+        }).join('');
+
+        contenedorFiltros.querySelectorAll('.category-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var idAttr = btn.getAttribute('data-categoria-id');
+                categoriaActivaId = idAttr === '' ? null : parseInt(idAttr, 10);
+
+                contenedorFiltros.querySelectorAll('.category-btn').forEach(function (b) {
+                    b.classList.remove('active');
+                });
+                btn.classList.add('active');
+
+                aplicarFiltros();
+            });
         });
     }
 
-    // Cargar los servicios y sus categorías
+    function cargarCatalogo() {
+        var urlApiServicios = window.BEC.cfg.api.servicios;
+        var urlApiCategorias = window.BEC.cfg.api.categorias;
+
+        Promise.all([
+            fetch(urlApiCategorias).then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; }),
+            fetch(urlApiServicios).then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; })
+        ]).then(function(respuestas) {
+            var dataCategorias = respuestas[0];
+            var dataServicios = respuestas[1];
+
+            var listaCategorias = window.BEC.lista(dataCategorias);
+            listaCategorias.forEach(function(c) {
+                mapaCategorias[c.id] = c.nombre;
+            });
+            renderizarFiltrosCategoria(listaCategorias);
+
+            todosLosServicios = window.BEC.lista(dataServicios);
+
+            if (dataServicios === null && grid) {
+                grid.innerHTML = '<div class="empty-state">No pudimos cargar el catálogo. Intenta de nuevo en un momento.</div>';
+                return;
+            }
+
+            renderizar(todosLosServicios);
+        });
+    }
+
     cargarCatalogo();
 
-    // Filtro por búsqueda dinámica
     if (inputBuscar) {
-        inputBuscar.addEventListener('input', function () {
-            var term = this.value.toLowerCase().trim();
-            var filtrados = todosLosServicios.filter(function (s) {
-                var nombre = (s.nombre || '').toLowerCase();
-                var cat = obtenerNombreCategoria(s).toLowerCase();
-                return nombre.includes(term) || cat.includes(term);
-            });
-            renderizar(filtrados);
-        });
+        inputBuscar.addEventListener('input', aplicarFiltros);
     }
 });
 </script>
